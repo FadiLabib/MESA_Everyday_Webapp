@@ -15,11 +15,90 @@
     <link href="../static/css/bootstrap.min.css" rel="stylesheet">
     <!-- Material Design Bootstrap -->
     <link href="../static/css/mdbdashboard2.min.css" rel="stylesheet">
+    <!-- Image Picker -->
+    <link href="../static/css/image-picker.css" rel="stylesheet">
     <!-- Main css -->
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">  
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
+    <!-- Bootstrap 4 DatePicker-->  
+    <link href="../static/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+    <link href="../static/css/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css"> -->
+    <link rel="stylesheet" type="text/css" href="../static/css/dataTables.bootstrap4.min.css"/>
+    <link type="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link href="../static/css/css-circular-prog-bar.css" media="all" rel="stylesheet" type="text/css"/>
+    <style>
+        body {
+            font-family: Merriweather;
+        }
+        .min-chart .percent:after {
+            display: none;
+        }
+        #myBtn {
+          display: none;
+          position: fixed;
+          bottom: 20px;
+          right: 30px;
+          z-index: 99;
+          font-size: 18px;
+          border: none;
+          outline: none;
+          background-color: red;
+          color: white;
+          cursor: pointer;
+          padding: 15px;
+          border-radius: 4px;
+        }
+
+        #myBtn:hover {
+          background-color: #555;
+    </style>
 </head>
 
     {% block content %}{% endblock %}
+
+
+    <!-- Footer -->
+    <footer class="footer bg-light">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 h-100 text-center text-lg-left my-auto">
+          <ul class="list-inline mb-2">
+            <li class="list-inline-item">
+              <a href="#">Phone Number</a>
+            </li>
+            <li class="list-inline-item">&sdot;</li>
+            <li class="list-inline-item">
+              <a href="#">Email</a>
+            </li>
+            <li class="list-inline-item">&sdot;</li>
+            <li class="list-inline-item">
+              <a href="#">Location</a>
+            </li>
+          </ul>
+          <p class="text-muted small mb-4 mb-lg-0">&copy; MESA Website 2018. All Rights Reserved.</p>
+        </div>
+        <div class="col-lg-6 h-100 text-center text-lg-right my-auto">
+          <ul class="list-inline mb-0">
+            <li class="list-inline-item mr-3">
+              <a href="#">
+                <i class="fa fa-facebook fa-2x fa-fw"></i>
+              </a>
+            </li>
+            <li class="list-inline-item mr-3">
+              <a href="#">
+                <i class="fa fa-twitter-square fa-2x fa-fw"></i>
+              </a>
+            </li>
+            <li class="list-inline-item">
+              <a href="#">
+                <i class="fa fa-instagram fa-2x fa-fw"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    </footer>
     <!--JavaScript -->
     <!-- SCRIPTS -->
     <!-- JQuery -->
@@ -28,19 +107,58 @@
     <script type="text/javascript" src="../static/js/popper.min.js"></script>
     <!-- Bootstrap core JavaScript -->
     <script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
+    <!-- Image picker -->
+    <script type="text/javascript" src="../static/js/image-picker.min.js"></script>
     <!-- MDB core JavaScript -->
     <script type="text/javascript" src="../static/js/mdbdashboard2.min.js"></script>
-    <!--Custom scripts-->
-    <script>
-        // SideNav Initialization
-        $(".button-collapse").sideNav();
+    <!-- Gijgo Datepicker -->
+    <script type="text/javascript" src="../static/js/gijgo.min.js"></script>
+    <script type="text/javascript" src="../static/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="../static/js/dataTables.bootstrap4.min.js"></script>
+    <!--Countdown Clock-->
+    <script type="text/javascript" src="../static/js/jquery.countdown.min.js"></script>
+    <!--<script type="text/javascript" href="{{ url_for('static', filename='js/jquery.countdown.min.js') }}"></script>-->
+    <!--Countdown Bridge for Div Data-->
+    <script type="text/javascript" src="../static/js/jinja.countdown.js"></script>
+    <!--<script type="text/javascript" href="{{ url_for('static', filename='js/jinja.countdown.js') }}"></script>-->
+    <!--Calendar Resize-->
+    <script type="text/javascript" src="../static/js/calendar.resize.js"></script>
+    <script type="text/javascript" src="../static/js/sideNavInit.js"></script>
+    <script type="text/javascript" src="../static/js/jquery-ui.min.js"></script>
 
-        var container = document.querySelector('.custom-scrollbar');
-        Ps.initialize(container, {
-            wheelSpeed: 2,
-            wheelPropagation: true,
-            minScrollbarLength: 20
+
+    <script type="text/javascript">
+        
+        $(".date-custom").attr("autocomplete", "off");
+        
+        $('#upEvent').DataTable({
+           "dom": 'f<"top"i>rt<"bottom"lp><"clear">'
         });
+        $(function () {
+            $('.min-chart#chart-sales').easyPieChart({
+                barColor: "#FF5252",
+                onStep: function (from, to, percent) {
+                    $(this.el).find('.percent').text("Lv.");
+                }
+            });
+        });
+        window.onscroll = function() {scrollFunction()};
+
+        function scrollFunction() {
+          if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+            document.getElementById("myBtn").style.display = "block";
+          } else {
+            document.getElementById("myBtn").style.display = "none";
+          }
+        }
+        function topFunction() {
+          document.body.scrollTop = 0;
+          document.documentElement.scrollTop = 0;
+        }
     </script>
-</body>
+    {% block scripts %}{% endblock scripts %}
+    <!--Custom scripts-->
+    </body>
+
 </html>
+

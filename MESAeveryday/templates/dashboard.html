@@ -1,205 +1,96 @@
-{% extends "layout.html" %}
-{% block content %}
-<body class="fixed-sn white-skin">
+{% extends "dashboard_layout.html" %}
+{% block main %}
 
-    <!--Main Navigation-->
-    <header>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
-        <!--Navbar-->
-        <nav class="navbar fixed-top navbar-expand-lg scrolling-navbar double-nav">
-            <!-- SideNav slide-out button -->
-            <div class="float-left">
-                <a href="#" data-activates="slide-out" class="button-collapse black-text"><i class="fa fa-bars"></i></a>
-            </div>
-            <!-- Breadcrumb-->
-            <div class="breadcrumb-dn mr-auto">
-                <p>MESA Everyday</p>
-            </div>
+<div class="card mb-4">
 
-            <!--Navbar links-->
-            <ul class="nav navbar-nav nav-flex-icons ml-auto">
 
-                <!-- Dropdown -->
-                <li class="nav-item dropdown notifications-nav">
-                    <a class="nav-link dropdown-toggle waves-effect" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
-                        aria-expanded="false">
-                        <span class="badge red">3</span> <i class="fa fa-bell"></i>
-                        <span class="d-none d-md-inline-block">Notifications</span>
-                    </a>
-                    <div class="dropdown-menu dropdown-info" aria-labelledby="navbarDropdownMenuLink">
-                        <a class="dropdown-item" href="#">
-                            <i class="fa fa-money mr-2" aria-hidden="true"></i>
-                            <span>Notification 1</span>
-                            <span class="float-right"><i class="fa fa-clock-o" aria-hidden="true"></i> 13 min</span>
-                        </a>
-                        <a class="dropdown-item" href="#">
-                            <i class="fa fa-money mr-2" aria-hidden="true"></i>
-                            <span>Notification 2</span>
-                            <span class="float-right"><i class="fa fa-clock-o" aria-hidden="true"></i> 33 min</span>
-                        </a>
-                        <a class="dropdown-item" href="#">
-                            <i class="fa fa-line-chart mr-2" aria-hidden="true"></i>
-                            <span>Notification 3</span>
-                            <span class="float-right"><i class="fa fa-clock-o" aria-hidden="true"></i> 53 min</span>
-                        </a>
+    <div class="card-header white-text primary-color">
+        Badge Information
+    </div>
+
+    <div class="card-body">
+    
+
+        <!-- Main student badge content goes here -->
+        <!-- <h5>Earned points</h5> -->
+
+        {% for badge in badges %}
+            <!--Grid column-->
+            <div class="col-xl-12 col-md-6 mb-4">
+                <!--Card-->
+                <div class="card card-cascade cascading-admin-card" style="background-color: {{ badge.color }}">
+
+                    <!--Card Data-->
+                    <div class="admin-up">
+                        <img class="rounded-circle account-img" style="height: 150px" src="../static/badge_icons/{{ badge.icon.file_name }}">
+                        <div class="data">
+                            <h3 class="font-weight-bold dark-grey-text">{{ badge.badge_name }}</h3>
+                        </div>
                     </div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link waves-effect"><i class="fa fa-envelope"></i> <span class="clearfix d-none d-sm-inline-block">Inbox</span></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link waves-effect"><i class="fa fa-calendar"></i> <span class="clearfix d-none d-sm-inline-block">Calendar</span></a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle waves-effect" href="#" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-user"></i> <span class="clearfix d-none d-sm-inline-block">Profile</span></a>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                        <a class="dropdown-item" href="{{ url_for('logout') }}">Log Out</a>
-                        <a class="dropdown-item" href="#">My account</a>
+                    <!--/.Card Data-->
+
+                    <!--Card content-->
+                    <div class="card-body">
+                        <div class="progress" style="height:30px">
+                            <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ (progress[badge.badge_id].total_points/all_max_points[badge.badge_id].max_points*100)|round }}%;height:30px" aria-valuenow="{{ (progress[badge.badge_id].total_points/all_max_points[badge.badge_id].max_points*100)|round }}" aria-valuemin="0" aria-valuemax="100">{{ (progress[badge.badge_id].total_points/all_max_points[badge.badge_id].max_points*100)|round }}%</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <!--Text-->
+                                <p class="card-text" style="font-size: 150%"><b>Total points earned:</b> {{ progress[badge.badge_id].total_points }} points</p>
+                                <p class="card-text" style="font-size: 150%"><b>Point until next level:</b> {{ progress[badge.badge_id].to_next_level }} points</p>
+                                <p class="card-text" style="font-size: 150%"><b>Maximum points can be earned:</b> {{ all_max_points[badge.badge_id].max_points }} points</p>
+                                <div class="row">
+                                    <div class="col-lg-5">
+                                        <button id="earn_button{{ badge.badge_id }}" class="btn btn btn-flat grey lighten-3 btn-rounded waves-effect font-weight-bold dark-grey-text float-left">Earn Stamp</a></button>
+                                    </div>
+                                    <div class="col-lg-7">
+                                        <button id="progress_button{{ badge.badge_id }}" class="btn btn btn-flat grey lighten-3 btn-rounded waves-effect font-weight-bold dark-grey-text float-right">Detailed Progress</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <!-- <div class="progress-circle p{{ progress[badge.badge_id].total_points }}">
+                                   <span><p style="font-size: 45px">{{ progress[badge.badge_id].current_level }}</p></span>
+                                   <div class="left-half-clipper">
+                                      <div class="first50-bar"></div>
+                                      <div class="value-bar"></div>
+                                   </div>
+                                </div> -->
+                                <span class="min-chart my-4" id="chart-sales" data-percent="{{ (progress[badge.badge_id].total_points/(progress[badge.badge_id].total_points + progress[badge.badge_id].to_next_level)*100)|round }}"><span class="percent"></span>{{ progress[badge.badge_id].current_level }}</span>
+                            </div>
+                        </div>
                     </div>
-                </li>
-
-            </ul>
-            <!--/Navbar links-->
-        </nav>
-        <!--/.Navbar-->
-
-        <!-- Sidebar navigation -->
-        <div id="slide-out" class="side-nav sn-bg-4 fixed">
-            <ul class="custom-scrollbar">
-            <!-- Logo -->
-            <li class="logo-sn waves-effect">
-                <div class="text-center">
-                    <a href="#" class="pl-0"><img src="../static/img/mesa.png" class=""></a>
+                    <!--/.Card content-->
                 </div>
-            </li>
-            <!--/. Logo -->
-
-            <!--Search Form-->
-            <li>
-                <form class="search-form" role="search">
-                    <div class="form-group md-form mt-0 pt-1 waves-light">
-                        <input type="text" class="form-control" placeholder="Search">
-                    </div>
-                </form>
-            </li>
-            <!--/.Search Form-->
-            <!-- Side navigation links -->
-            <li>
-                <ul class="collapsible collapsible-accordion">
-                    <li><a class="collapsible-header waves-effect arrow-r"><i class="fa fa-tachometer"></i> Dashboards</a>
-                    </li>
-                    <li><a class="collapsible-header waves-effect arrow-r"><i class="fa fa-photo"></i> Get Stamp</a>
-                    </li>
-                    <li><a class="collapsible-header waves-effect arrow-r"><i class="fa fa-user"></i> View Progress<i class="fa fa-angle-down rotate-icon"></i></a>
-                        <div class="collapsible-body">
-                            <ul>
-                                {% for r in result %}
-                                <li><a href="" class="waves-effect">{{ r }}</a>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
-            </li>
-            <!--/. Side navigation links -->
-            </ul>
-            <div class="sidenav-bg mask-strong"></div>
-        </div>
-        <!--/. Sidebar navigation -->
-    </header>
-    <!--Main Navigation-->
-
-    <!--Main layout-->
-    <main>
-
-        <div class="container-fluid">
-
-            <!-- First row -->
-
-            <div class="row">
-
-                <!-- First column -->
-
-                <div class="col-lg-8 col-md-12">
-
-                    <!--Panel-->
-                    <div class="card mb-4">
-                        <div class="card-header white-text primary-color">
-                           Badge Information
-                        </div>
-                        <div class="card-body">
-                        	Main student badge content goes here 
-
-                            <button class="btn btn btn-flat grey lighten-3 btn-rounded waves-effect font-weight-bold dark-grey-text float-right">View full report</button>
-
-                        </div>
-                    </div>
-                    <!--/.Panel-->
-
-                    <!-- Panel -->
-
-                    <div class="card mb-4">
-                        <div class="card-header white-text primary-color">
-                            Users activity
-                        </div>
-                        <div class="card-body">
-                        	User activity content goes here
-                        </div>
-                    </div>
-
-                    <!-- /.Panel -->
-
-                </div>
-
-                <!-- /.First column -->
-
-                <div class="col-lg-4 col-md-12">
-
-                    <!--Panel-->
-                    <div class="card mb-4">
-                        <div class="card-header white-text primary-color">
-                            Calendar
-                        </div>
-                        <div class="card-body">
-														<div style="overflow-x:auto;">
-																		<iframe src="https://calendar.google.com/calendar/embed?height=300&amp;wkst=1&amp;bgcolor=%23FFFFFF&amp;src=pdx.edu_nl0ch7aidsj6hdmsc02toe684s%40group.calendar.google.com&amp;color=%23AB8B00&amp;ctz=America%2FLos_Angeles" style="border-width:1" width="500" height="300" frameborder="0" scrolling="no"></iframe>	
-                            		<button class="btn btn btn-flat grey lighten-3 btn-rounded waves-effect font-weight-bold dark-grey-text float-right">View full calendar</button>
-                        		</div>
-                        </div>
-                    </div>
-                    <!--/.Panel-->
-
-                    <!--Panel-->
-                    <div class="card mb-4">
-                        <div class="card-header white-text primary-color">
-                            Upcoming Events
-                        </div>
-                        <div class="card-body">
-                        	Upcoming events goes here
-                            <button class="btn btn btn-flat grey lighten-3 btn-rounded waves-effect font-weight-bold dark-grey-text float-right">View full upcoming events</button>
-                        </div>
-                    </div>
-                    <!--/.Panel-->
-                </div>
-                <!-- /.Second row -->
+                <!--/.Card-->
             </div>
-    </main>
-    <!--Main layout-->
+        {% endfor %}
+    </div>
+</div>
+<!--/.Panel-->
+{% endblock main %}
 
-    <!--Footer-->
-    <footer class="page-footer pt-0 mt-5 rgba-stylish-light">
-
-        <!--Copyright-->
-        <div class="footer-copyright py-3 text-center">
-              <div class="container-fluid">
-                 <a> MESA Office Contact Information </a>
-            </div>
-        </div>
-        <!--/.Copyright-->
-
-    </footer>
-    <!--/.Footer-->
-{% endblock content %}
+{% block scripts %}
+    {{ super() }}
+    {% for badge in badges %}
+        <script type="text/javascript">           
+            document.getElementById("earn_button{{ badge.badge_id }}").onclick = function () {
+            location.href = "{{ url_for('earn_stamps') }}";
+            };
+            document.getElementById("progress_button{{ badge.badge_id }}").onclick = function () {
+            location.href = "/badges{{ badge.badge_id }}";
+            };
+        </script>
+    {% endfor %}
+{% endblock scripts %}

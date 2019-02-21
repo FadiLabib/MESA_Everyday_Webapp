@@ -1,0 +1,95 @@
+{% extends "dashboard_layout.html" %}
+{% block main %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="card mb-4">
+    <div class="card-header white-text primary-color">
+        Badge Information
+    </div>
+
+    <div class="card-body">
+        <!-- Main student badge content goes here -->
+        <!-- <h5>Earned points</h5> -->
+
+        {% for badge in badges %}
+            <!--Grid column-->
+            <div class="col-xl-12 col-md-6 mb-4">
+                <!--Card-->
+                <div class="card card-cascade cascading-admin-card" style="background-color: #b3cce6">
+
+                    <!--Card Data-->
+                    <div class="admin-up">
+                        <img class="rounded-circle account-img" style="height: 150px" src="../static/badge_icons/{{ badge.icon.file_name }}">
+                        <div class="data">
+                            <h3 class="font-weight-bold dark-grey-text">{{ badge.badge_name }}</h3>
+                        </div>
+                    </div>
+                    <!--/.Card Data-->
+
+                    <!--Card content-->
+                    <div class="card-body">
+                        <div class="progress" style="height:30px">
+                            <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ progress[badge.badge_id].total_points }}%;height:30px" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">{{ progress[badge.badge_id].total_points }}%</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-8">
+                                 <!--Text-->
+                                <p class="card-text" style="font-size: 150%">Total points earned: {{ progress[badge.badge_id].total_points }} points</p>
+                                <p class="card-text" style="font-size: 150%">Point until next level: {{ progress[badge.badge_id].to_next_level }} points</p>
+                                <table>
+                                    {% for event in mesa_events[badge.badge_id][:5] %}
+                                        <tr bgcolor="#7777AA">
+                                            <td>
+                                                {{ event['summary'] }}
+                                                - in {{ event['remain_days'] }} days
+                                            </td>
+                                        </tr>
+                                        <tr bgcolor="#7777AA">
+                                            <td>
+                                                {{ event['start_string'] }} 
+                                                at {{ event['location'] }}
+                                            </td>
+                                        </tr>
+                                        <tr bgcolor="#7777AA">
+                                            <td>
+                                                badge: {{event['badgeColor']}}
+                                            </td>
+                                        </tr>
+                                        <tr bgcolor="#7777AA">
+                                            <td>
+                                                <a href={{ event['htmlLink'] }}> Event Link </a>
+                                            </td>                                              
+                                        </tr>                                                
+                                        <tr><td> -- </td></tr>
+                                    {% endfor %}
+                                </table>
+                            </div>                         
+                        </div>
+                    </div>
+                    <!--/.Card content-->
+                </div>
+                <!--/.Card-->
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<!--/.Panel-->
+{% endblock main %}
+
+
+
+
+
+
+
+
+

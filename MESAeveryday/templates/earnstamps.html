@@ -1,0 +1,70 @@
+{% extends "dashboard_layout.html" %}
+{% block main %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!--Panel-->
+<div class="card mb-4">
+    <div class="card-header white-text primary-color">
+       Badge Information
+    </div>
+    <div class="card-body">
+        <fieldset class="form-group">
+            {% set t = 0 %}
+            {% for f in forms %}
+                <form name="earn_stamps" method="POSt" action="{{ url_for('earn_stamps')}}" class="text-center p-5">
+                    {{ f.hidden_tag() }}
+                    <div class="card">
+                    <div class="card-body">
+
+                        <h4><b>{{ f.badge_name }}</b></h4>
+                    
+                    <div class="row" style="text-align: center;">
+                        <div class="col-lg-4 col-md-12">
+                            <div class="md-form">
+                                {{ f.stamps(class="form-control", placeholder="stamps") }}
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-12">
+                            <div class="md-form">
+                                {{ f.time_finished(class="date-custom", placeholder="Selected date") }}
+                                <!-- <input id="date" width="270"/> -->
+                                <!-- <input placeholder="Selected date" type="text" id="time_finished" name="time_finished" class="form-control datepicker"> -->
+                                <span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>
+                            </div>
+                        </div> 
+                        <div class="col-lg-4 col-md-12">
+                            <div class="md-form">
+                                {{ f.submit(class="btn-save btn btn-primary btn-sm") }}
+                            </div>
+                        </div>
+                        </div>
+                        </div>
+                    </div>
+                </form>
+                <br>
+            {% endfor %}
+        </fieldset>    
+    </div>
+</div>
+<!--/.Panel-->
+{% endblock main %}
+
+{% block scripts %}
+    {{ super() }}
+    {% for f in forms %}
+        <script>
+            $('#{{ "date" + loop.index|string }}').datepicker({
+
+            });
+        </script>
+    {% endfor %}
+{% endblock scripts %}

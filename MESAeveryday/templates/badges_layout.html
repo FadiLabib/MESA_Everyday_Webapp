@@ -1,0 +1,297 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+    body {
+        background-color: #ACA29A;
+    }
+    .stepper li.active a .white-skin .circle, .stepper li.completed a .white-skin .circle, .white-skin .primary-color, .white-skin .stepper li.active a .circle, .white-skin .stepper li.completed a .circle {
+        background-color: #716558 !important;
+    }
+</style>
+<body class="fixed-sn white-skin">
+
+    <!--Main Navigation-->
+    <header>
+
+        <!--Navbar-->
+        <nav class="navbar fixed-top navbar-expand-lg scrolling-navbar double-nav">
+            <!-- SideNav slide-out button -->
+            <div class="float-left">
+                <a href="#" data-activates="slide-out" class="button-collapse black-text"><i class="fa fa-bars"></i></a>
+            </div>
+            <!-- Breadcrumb-->
+            <div class="breadcrumb-dn mr-auto">
+                
+            </div>
+
+            <!--Navbar links-->
+            <ul class="nav navbar-nav nav-flex-icons ml-auto">
+
+                <!-- Dropdown -->
+                <li class="nav-item dropdown notifications-nav">
+                    <a class="nav-link dropdown-toggle waves-effect" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {% if number_upcoming > 0 %}
+                            <span class="badge red">{{number_upcoming}}</span> <i class="fa fa-bell"></i>
+                        {% endif %}
+                        <span class="d-none d-md-inline-block">Notifications</span>
+                    </a>
+
+                    <div class="dropdown-menu dropdown-info" aria-labelledby="navbarDropdownMenuLink">
+                        {% if number_upcoming > 0 %}
+                            {% for event in upcoming_events %}
+                                <a class="dropdown-item" href="#">
+                                    <i class="fa fa-times-rectangle mr-2" aria-hidden="true"></i>
+                                    <span> {{ event['summary'] }} </span>
+                                    <span class="float-right"><i class="fa fa-clock-o" aria-hidden="true"></i>
+                                        {{ event['remain_days'] }} days
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <a class="dropdown-item" href="#">
+                                <i class="fa fa-times-rectangle mr-2" aria-hidden="true"></i>
+                                <span> No Events </span>
+                                <span class="float-right">
+                                    <i class="fa fa-clock-o" aria-hidden="true"></i>
+                                    0 days
+                                </span>
+                            </a>
+                        {% endif %}
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link waves-effect" href="https://calendar.google.com/calendar/embed?src=bartlett%40pdx.edu&ctz=America%2FLos_Angeles">
+                        <i class="fa fa-calendar"></i>
+                        <span class="clearfix d-none d-sm-inline-block">Calendar</span>
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle waves-effect" href="#" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-user"></i> <span class="clearfix d-none d-sm-inline-block">{{ current_user.username }} </span></a>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                        <div class="navbar-login">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <img src="static/avatar/{{ current_user.avatar.file_name }}" class="rounded-circle account-img" alt="First sample image">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <a class="dropdown-item text-center" href="{{ url_for('account') }}">Edit Profile</a>
+                                    <a class="dropdown-item text-center" href="{{ url_for('logout') }}">Log Out</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+            </ul>
+            <!--/Navbar links-->
+        </nav>
+        <!--/.Navbar-->
+
+         <!-- Sidebar navigation -->
+        <div id="slide-out" class="side-nav sn-bg-4 fixed">
+            <ul class="custom-scrollbar">
+            <!-- Logo -->
+            <li class="logo-sn waves-effect">
+                <div class="text-center">
+                    <a href="#" class="pl-0"><img src="../static/img/mesa.png" class=""></a>
+                </div>
+            </li>
+            <!--/. Logo -->
+            <!-- Side navigation links -->
+            <li>
+                <ul class="collapsible collapsible-accordion">
+                    <li><a href="{{ url_for('dashboard') }}" class="collapsible-header waves-effect arrow-r"><i class="fa fa-tachometer"></i> Dashboards</a>
+                    </li>
+                    <li><a href="{{ url_for('earn_stamps') }}" class="collapsible-header waves-effect arrow-r"><i class="fa fa-photo"></i> Get Stamp</a>
+                    </li>
+                    <li><a class="collapsible-header waves-effect arrow-r"><i class="fa fa-user"></i> View Progress<i class="fa fa-angle-down rotate-icon"></i></a>
+                        <div class="collapsible-body">
+                            <ul>
+                                {% for badge in badges %}
+                                    <li><a href="/badges/{{ badge.badge_id }}" class="waves-effect">{{ badge.badge_name }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <!--/. Side navigation links -->
+            </ul>
+            <div class="sidenav-bg mask-strong"></div>
+        </div>
+        <!--/. Sidebar navigation -->
+    </header>
+    <!--Main Navigation-->
+
+
+    <!--Main layout-->
+    <main>
+
+        <div class="container-fluid">
+
+            <!-- First row -->
+
+            <div class="row">
+
+                <!-- First column -->
+
+                <div class="col-lg-8 col-md-12">
+                    <div class="row">
+                        <div class="col-lg-4 col-md-8">
+                            <div class="card mb-4">
+                                <div class="card-header white-text primary-color">
+                                    First Event Countdown
+                                </div>
+                                <div class="card-body">
+                                    <table>
+                                        <tr><td>Time Until First Event<td></tr>
+                                        <tr><td><span id="clock" data-date-string={{events[0][ 'date_string' ]}}></span></td></tr>
+                                    </table>
+                                </div>
+                            </div>    
+                        </div>
+
+                        <div class="col-lg-4 col-md-8">
+                            <div class="card mb-4">
+                                <div class="card-header white-text primary-color">
+                                    Last Event Countdown
+                                </div>
+                                <div class="card-body">
+                                    <table>
+                                        <tr><td>Time Until Last Event<td></tr>
+                                        <tr><td><span id="clock2" data-date-string-second={{events[-1][ 'date_string' ]}}></span></td></tr>
+                                    </table>
+                                </div>
+                            </div>    
+                        </div>
+
+                        <div class="col-lg-4 col-md-8">
+                            <div class="card mb-4">
+                                <div class="card-header white-text primary-color">
+                                     MESA Day Countdown
+                                </div>
+                                <div class="card-body">
+                                    <table>
+                                        <tr><td>Time Until MESA Day<td></tr>
+                                        <tr><td><span id="clock3" data-date-string-third={{mesa_days[0][ 'date_string' ]}}></span></td></tr>
+                                    </table>
+                                </div>
+                            </div>    
+                        </div>
+                    </div>   
+
+                    <!--Main part that different-->
+                    {% block main %}{% endblock main %}
+                    <!-- Main part that different -->
+                    
+                </div>
+                <!-- Second column -->
+
+                <div class="col-lg-4 col-md-12">
+
+                    <!--Panel-->
+                    <div class="card mb-4" id='calendar-div'>
+                        <div class="card-header white-text primary-color">
+                            Calendar
+                        </div>
+                        <div class="embed-responsive embed-responsive-16by9" style="height: 300px">
+                            <iframe class="cal-iframe embed-responsive-item" id='cv_if5' src='http://cdn.instantcal.com/cvir.html?id=cv_nav5&file=https://calendar.google.com/calendar/ical/bartlett%40pdx.edu/public/basic.ics&theme=BL&ccolor=%23ffffc0&dims=1&gtype=cv_monthgrid&gcloseable=0&gnavigable=1&gperiod=month&itype=cv_simpleevent'
+                                allowTransparency=true scrolling='no' frameborder=0 height=auto width=100%></iframe>
+                        </div>
+                    </div>
+                    <!--/.Panel-->
+
+                    <!--Panel-->
+                    <div class="card mb-4">
+                        <div class="card-header white-text primary-color">
+                            {{ badge.badge_name }} Events
+                        </div>
+                        <div class="card-body">
+                            <div class="accordion md-accordion" id="accordionEx" role="tablist" aria-multiselectable="true">
+                                <!-- Accordion card -->
+                                <div class="card">
+                                    <div class="card-header" role="tab" id="headingOne1">
+                                        <a data-toggle="collapse" data-parent="#accordionEx" href="#collapseOne1" aria-expanded="true" aria-controls="collapseOne1">
+                                            <h5 class="mb-0">
+                                                {{ badge.badge_name }} <i class="fa fa-angle-down rotate-icon"></i>
+                                            </h5>
+                                        </a>
+                                    </div>
+                                    <div id="collapseOne1" class="collapse show" role="tabpanel" aria-labelledby="headingOne1" data-parent="#accordionEx">
+                                        <div class="card-body">
+                                            <table class="table table-hover mb-0" id="upEvent">
+                                                <thead>
+                                                    <th>General Events</th>
+                                                    <th>Remain Days</th>
+                                                    <th>Time</th>
+                                                    <th>Location</th>
+                                                </thead>
+                                                <tbody>
+                                                    {% for event in mesa_events[badge.badge_id][:10] %}
+                                                        {% if event['remain_days'] < 15 %} 
+                                                            <tr>
+                                                                <td>{{event['summary']}}</td>
+                                                                <td>{{event['remain_days']}}</td>
+                                                                <td>{{event['start_string']}}</td>
+                                                                <td>{{event['location']}}</td>
+                                                            </tr>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <!-- Card header -->
+                                    <div class="card-header" role="tab" id="headingTwo2">
+                                        <a class="collapsed" data-toggle="collapse" data-parent="#accordionEx" href="#collapseTwo2" aria-expanded="false" aria-controls="collapseTwo2">
+                                            <h5 class="mb-0">
+                                                MESA Event <i class="fa fa-angle-down rotate-icon"></i>
+                                            </h5>
+                                        </a>
+                                    </div>
+                                    <!-- Card body -->
+                                    <div id="collapseTwo2" class="collapse" role="tabpanel" aria-labelledby="headingTwo2" data-parent="#accordionEx">
+                                        <div class="card-body">
+                                            <table class="table table-hover mb-0" id="mesaEvent">
+                                                <thead>
+                                                    <th>MESA Events</th>
+                                                    <th>Time</th>
+                                                </thead>
+                                                <tbody>
+                                                    {% for event in mesa_days %}
+                                                            <tr>
+                                                                <td>{{event['summary']}}</td>
+                                                                <td>{{event['start_string']}}</td>
+                                                            </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <form action="{{ url_for('events') }}">
+                                <button class="btn btn btn-flat grey lighten-3 btn-rounded waves-effect font-weight-bold dark-grey-text float-right">View
+                                    full upcoming events
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <!--/.Panel-->
+                </div>
+                <!-- /.Second row -->
+            </div>
+    </main>
+    <!--Main layout-->
+{% endblock content %}
+
+{% block scripts %}
+    {{ super() }}
+{% endblock scripts %}
+

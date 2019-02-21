@@ -1,0 +1,176 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<!-- Admin Settings Placeholder -->
+
+<!--Navbar-->
+<ul class="nav navbar-nav nav-flex-icons ml-auto">
+    <li class = "nav-item">
+        <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
+    </li>
+</ul>
+
+<div class="container-fluid"> 
+    You are now in the admin settings page
+    <li><a href="{{ url_for('admin') }}">Dashboard</a></li>
+    <li><a href="{{ url_for('admin_control') }}">Control</a></li>
+</div>
+
+<div class="content-section">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
+    <legend class="border-bottom mb-4">Modify Badge Levels</legend>
+    Set how many points are required for each level. <br/>
+    Each level must require more points than the previous level.<br/>
+    Leave fields blank to set how many levels there are (i.e. leaving level 4 blank will mean there is only 3 possible levels).  <br/><br/>
+    
+    {% for badge in badges %}
+        
+        <!-- Set Badge Points -->
+        <form name ="badge_form" method="POST" action="" enctype="multipart/form-data">
+            {{ badge_forms[badge.badge_id].hidden_tag() }}
+            <fieldset class="form-group">
+                <img class="rounded-circle account-img" src="../static/badge_icons/{{ badge.icon.file_name }}"> {{ badge.badge_name }}               
+                <div class="form-group">                  
+          
+                    {{ badge_forms[badge.badge_id].level1_points.label(class="form-control-label") }}
+                    {% if badge_forms[badge.badge_id].level1_points.errors %}
+                        {{ badge_forms[badge.badge_id].level1_points(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in badge_forms[badge.badge_id].level1_points.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ badge_forms[badge.badge_id].level1_points(class="form-control form-control-lg") }}
+                    {% endif %}
+          
+                    {{ badge_forms[badge.badge_id].level2_points.label(class="form-control-label") }}
+                    {% if badge_forms[badge.badge_id].level2_points.errors %}
+                        {{ badge_forms[badge.badge_id].level2_points(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in badge_forms[badge.badge_id].level2_points.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ badge_forms[badge.badge_id].level2_points(class="form-control form-control-lg") }}
+                    {% endif %}
+       
+                    {{ badge_forms[badge.badge_id].level3_points.label(class="form-control-label") }}
+                    {% if badge_forms[badge.badge_id].level3_points.errors %}
+                        {{ badge_forms[badge.badge_id].level3_points(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in badge_forms[badge.badge_id].level3_points.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ badge_forms[badge.badge_id].level3_points(class="form-control form-control-lg") }}
+                    {% endif %}
+        
+                    {{ badge_forms[badge.badge_id].level4_points.label(class="form-control-label") }}
+                    {% if badge_forms[badge.badge_id].level4_points.errors %}
+                        {{ badge_forms[badge.badge_id].level4_points(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in badge_forms[badge.badge_id].level4_points.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ badge_forms[badge.badge_id].level4_points(class="form-control form-control-lg") }}
+                    {% endif %}
+           
+                    {{ badge_forms[badge.badge_id].level5_points.label(class="form-control-label") }}
+                    {% if badge_forms[badge.badge_id].level5_points.errors %}
+                        {{ badge_forms[badge.badge_id].level5_points(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in badge_forms[badge.badge_id].level5_points.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ badge_forms[badge.badge_id].level5_points(class="form-control form-control-lg") }}
+                    {% endif %}
+
+                    {{ badge_forms[badge.badge_id].level6_points.label(class="form-control-label") }}
+                    {% if badge_forms[badge.badge_id].level6_points.errors %}
+                        {{ badge_forms[badge.badge_id].level6_points(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in badge_forms[badge.badge_id].level6_points.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ badge_forms[badge.badge_id].level6_points(class="form-control form-control-lg") }}
+                    {% endif %}
+         
+                    {{ badge_forms[badge.badge_id].level7_points.label(class="form-control-label") }}
+                    {% if badge_forms[badge.badge_id].level7_points.errors %}
+                        {{ badge_forms[badge.badge_id].level7_points(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in badge_forms[badge.badge_id].level7_points.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ badge_forms[badge.badge_id].level7_points(class="form-control form-control-lg") }}
+                    {% endif %}
+
+                    {{ badge_forms[badge.badge_id].level8_points.label(class="form-control-label") }}
+                    {% if badge_forms[badge.badge_id].level8_points.errors %}
+                        {{ badge_forms[badge.badge_id].level8_points(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in badge_forms[badge.badge_id].level8_points.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ badge_forms[badge.badge_id].level8_points(class="form-control form-control-lg") }}
+                    {% endif %}
+
+                    {{ badge_forms[badge.badge_id].level9_points.label(class="form-control-label") }}
+                    {% if badge_forms[badge.badge_id].level9_points.errors %}
+                        {{ badge_forms[badge.badge_id].level9_points(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in badge_forms[badge.badge_id].level9_points.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ badge_forms[badge.badge_id].level9_points(class="form-control form-control-lg") }}
+                    {% endif %}
+               
+                    {{ badge_forms[badge.badge_id].level10_points.label(class="form-control-label") }}
+                    {% if badge_forms[badge.badge_id].level10_points.errors %}
+                        {{ badge_forms[badge.badge_id].level10_points(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in badge_forms[badge.badge_id].level10_points.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ badge_forms[badge.badge_id].level10_points(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>   
+            </fieldset>
+            <div class="form-group">
+                {{ badge_forms[badge.badge_id].submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+    {% endfor %}
+</div>
+
+{% endblock content %}
+
+{% block scripts %}
+    {{ super() }}
+{% endblock scripts %}

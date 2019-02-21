@@ -1,5 +1,10 @@
 flask
-flask_bcrypt
-flask_login
-flask_wtf
+flask-bcrypt
+flask-login
+flask-mail
+flask-wtf
+SQLAlchemy
 pymysql
+google-api-python-client
+oauth2client
+python-dateutil

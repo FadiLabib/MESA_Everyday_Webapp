@@ -1,12 +1,22 @@
 {% extends "layout.html" %}
 {% block content %}
+<style>
+  h1,h2,h3,h4,h5,h6{font-family:Lato,'Helvetica Neue',Helvetica,Arial,sans-serif;
+font-weight:700}header.masthead{
+  position:relative;
+  background-color:#343a40;
+  background:url(../static/img/PIC_006.jpg) no-repeat center center;
+  background-size:cover;padding-top:8rem;
+  padding-bottom:8rem
+}
+</style>
 <body>
   <!-- Start your project here-->
   <!-- Navigation -->
   <nav class="navbar navbar-light bg-light static-top">
     <div class="container">
       <!-- Navbar brand -->
-      <a class="navbar-brand" href="#">MESA</a>
+      <a class="navbar-brand" href="#"><img src="../static/img/mesa.png" class="" style="width: 150px; height: 50px;"></a>
       <form name="form_l" class="form-inline" method="POST" action="{{ url_for('login') }}">
         <div class="form">
             <!-- Username -->
@@ -37,13 +47,13 @@
         </div>
         <div class="form">
             <small class="text-muted ml-2">
-                <a href="#">Forgot Password?</a>
+                <a href="{{ url_for('reset_request') }}">Forgot Password?</a>
             </small>
             <small class="text-muted ml-2">
-                <a href="#">Forgot Username?</a>
+                <a href="{{url_for('forgot_username') }}">Forgot Username?</a>
             </small>
         </div>
-      </form>  
+      </form>
     </div>
   </nav>
 
@@ -84,7 +94,7 @@
                           {% endif %}
                       </div>
                     </div>
-                    <div class="col">  
+                    <div class="col">
                       <div class="form-group">
                               {% if form_r.lastname.errors %}
                                   {{ form_r.lastname(class="form-control form-control-lg is-invalid") }}
@@ -97,20 +107,8 @@
                                   {{ form_r.lastname(class="form-control", placeholder="Last Name") }}
                               {% endif %}
                       </div>
-                    </div>  
-                  </div>  
-                <div class="form-group">
-                        {% if form_r.username.errors %}
-                            {{ form_r.username(class="form-control form-control-lg is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in form_r.username.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            {{ form_r.username(class="form-control", placeholder="User Name") }}
-                        {% endif %}
-                </div>
+                    </div>
+                  </div>       
                 <div class="form-group">
                     {% if form_r.email.errors %}
                         {{ form_r.email(class="form-control form-control-lg is-invalid") }}
@@ -138,7 +136,7 @@
                         {% endif %}
                     </div>
                   </div>
-                  <div class="col">  
+                  <div class="col">
                     <div class="form-group">
                         {% if form_r.confirm_password.errors %}
                             {{ form_r.confirm_password(class="form-control form-control-lg is-invalid") }}
@@ -151,7 +149,7 @@
                             {{ form_r.confirm_password(class="form-control", placeholder="Confirm Password") }}
                         {% endif %}
                     </div>
-                  </div>  
+                  </div>
                 </div>
                 <div class="form-group">
                         {% if form_r.school.errors %}
@@ -174,54 +172,12 @@
               <p>By clicking
                   <em>Sign up</em> you agree to our
                   <a href="" target="_blank">terms of service</a>
-              </p>    
+              </p>
           </form>
           <!-- Default form register -->
         </div>
     </div>
   </header>
-
-  <!-- Footer -->
-  <footer class="footer bg-light">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-6 h-100 text-center text-lg-left my-auto">
-          <ul class="list-inline mb-2">
-            <li class="list-inline-item">
-              <a href="#">Phone Number</a>
-            </li>
-            <li class="list-inline-item">&sdot;</li>
-            <li class="list-inline-item">
-              <a href="#">Email</a>
-            </li>
-            <li class="list-inline-item">&sdot;</li>
-            <li class="list-inline-item">
-              <a href="#">Location</a>
-            </li>
-          </ul>
-          <p class="text-muted small mb-4 mb-lg-0">&copy; MESA Website 2018. All Rights Reserved.</p>
-        </div>
-        <div class="col-lg-6 h-100 text-center text-lg-right my-auto">
-          <ul class="list-inline mb-0">
-            <li class="list-inline-item mr-3">
-              <a href="#">
-                <i class="fa fa-facebook fa-2x fa-fw"></i>
-              </a>
-            </li>
-            <li class="list-inline-item mr-3">
-              <a href="#">
-                <i class="fa fa-twitter-square fa-2x fa-fw"></i>
-              </a>
-            </li>
-            <li class="list-inline-item">
-              <a href="#">
-                <i class="fa fa-instagram fa-2x fa-fw"></i>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </footer>  
   <!-- /Start your project here-->
 {% endblock content %}
+

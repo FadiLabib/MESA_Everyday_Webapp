@@ -1,0 +1,200 @@
+{% extends "dashboard_layout.html" %}
+{% block main %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!--Panel-->
+<div class="card mb-4" style="background-color: {{ badge.color }}">
+    <div class="card-header white-text primary-color">
+       Badge Information
+    </div>
+    <div class="card-body">
+        <!-- Main student badge content goes here -->
+        <!--Grid row-->
+        <div class="row">
+
+            <!--Grid column-->
+            <div class="col-lg-4 mb-4">
+                <!--Featured image-->
+                <div style="align-items: center;justify-content: center;display: flex;height: 10em">
+                    <!-- <div style="align-items: center;justify-content: center;display: flex;height: 10em"> -->
+                    <img class="rounded-circle account-img" src="../static/badge_icons/{{ badge.icon.file_name }}" style="height: 150px">
+                    <!-- </div> -->
+                    <!-- <a>
+                        <div class="mask rgba-white-slight"></div>
+                    </a> -->
+                </div>
+            </div>
+            <!--Grid column-->
+
+            <!--Grid column-->
+            <div class="col-lg-8 mb-4">
+                <!--Excerpt-->
+                <h4 class="mb-4"><strong>Badge {{ badge.badge_name }}</strong></h4>
+                <div class="row">
+                    <div class="col-lg-8 mb-4">
+                        <a href="" class="text" style="color: black"><h6 class="pb-1"><strong> Level <a style="font-size: 150%">{{ lv }}</a> </strong></h6></a>
+                        <p><a><strong>Total points earned:</strong></a> <a style="font-size: 150%"><strong>{{ pt }} points</strong></a></p>
+                        {% if to_next_lv == 0 %}
+                            <p><a><strong>You've achieved the maximum level!</strong></a></p>
+                        {% else %}
+                            <p><a><strong>Point to next level:</strong></a> <a style="font-size: 150%"><strong>{{ to_next_lv }} points</strong></a></p>
+                        {% endif %}
+                    </div>
+                    <div class="col-lg-4 mb-4">
+                        <!-- <span class="badge red">{{number_upcoming}}</span> <i class="fa fa-calendar"></i>
+                        <span class="d-none d-md-inline-block">Scroll to Events Table</span> -->
+                        <button onclick="divFunction()" type="button" class="btn-floating btn-fb"><i class="fa fa-calendar" title="Click to scroll to event table"></i></button>
+                        {% if number_upcoming > 0 %}
+                        <span id="countEvent" class="counter"></span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <!--Grid column-->
+
+        </div>
+        <!--Grid row-->
+    </div>
+</div>
+<!--/.Panel-->
+
+<!-- Panel -->
+
+<div class="card mb-4" style="background-color: {{ badge.color }}">
+    <div class="card-header white-text primary-color">
+        Unearned Stamps For Badge {{ badge.badge_name }}
+    </div>
+    <div class="card-body">
+        <table class="table table-striped table-bordered table-responsive-md" id="unearnedTable">
+            <thead>
+                <th>Unearned Stamps</th>
+            </thead>
+            <tbody>
+                {% for u in unearned %}
+                    <tr>
+                        <td>{{ u }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- /.Panel -->
+
+<!-- Panel -->
+
+<div class="card mb-4" style="background-color: {{ badge.color }}">
+    <div class="card-header white-text primary-color">
+        Earned Stamps For Badge {{ badge.badge_name }}
+    </div>
+    <div class="card-body">
+        <table class="table table-striped table-bordered table-responsive-md" id="earnedTable" style="width: 100%">
+            <thead>
+                <th>Earned Stamps</th>
+                <th>earned date</th>
+                <th>logged date</th>
+                <th style="display:none"></th>
+            </thead>
+            <tbody>
+                {% for u in earned %}
+                    <tr>
+                        <td>{{ u[3] }}</td>
+                        <td>{{ u[2] }}</td>
+                        <td>{{ u[1] }}</td>
+                        <td><button type="button" class="btn btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal" onclick="Values( '{{ u[0] }}', '{{ u[2] }}', '{{ u[1] }}')">
+                            delete
+                        </button></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="ediv" class="card mb-4" style="background-color: {{ badge.color }}">
+    <div class="card-header white-text primary-color">
+        {{ badge.badge_name }} Events
+    </div>
+    <div class="card-body">
+        <table class="table table-striped table-bordered table-responsive-md" id="eventTable" style="width: 100%">
+            <thead>
+                <th>General Events</th>
+                <th>Remain Days</th>
+                <th>Time</th>
+                <th>Location</th>
+            </thead>
+            <tbody>
+                {% for event in mesa_events[badge.badge_id][:10] %}
+                    {% if event['remain_days'] < 15 %} 
+                        <tr>
+                            <td>{{event['summary']}}</td>
+                            <td>{{event['remain_days']}}</td>
+                            <td>{{event['start_string']}}</td>
+                            <td>{{event['location']}}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- /.Panel -->
+
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document" >
+    <form  method="POST" action="/badges/{{ badge.badge_id }} ">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="avatarModalLabel">Delete Stamp</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id='stamp_id' name='stamp_id' value=''>
+            <input type="hidden" id='time_finished' name='time_finished' value=''>
+            <input type="hidden" id='log_date' name='log_date' value=''>
+            <p>Are you sure you want to delete this stamp?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button class="btn btn-default" type="submit">Delete</button>
+        </div>
+        </div>
+    </form>
+    </div>
+</div>
+
+<script>
+$("#deleteModal").modal("hide");
+function Values(ID, TimeFinished, LogDate){
+    $("#stamp_id").val(ID);
+    $("#time_finished").val(TimeFinished);
+    $("#log_date").val(LogDate);
+}
+</script>
+{% endblock main %}
+{% block scripts %}
+    {{ super() }}
+<script type="text/javascript">
+    $('#eventTable').DataTable();
+    function divFunction() {
+        $('html, body').animate({
+            scrollTop: $('#ediv').offset().top
+        }, 'slow');
+    }
+    var x = document.getElementById("eventTable").rows.length;
+    document.getElementById("countEvent").innerHTML = document.getElementById("eventTable").rows.length-1;
+</script>
+{% endblock scripts %}

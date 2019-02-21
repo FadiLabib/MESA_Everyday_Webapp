@@ -1,0 +1,313 @@
+{% extends "dashboard_layout.html" %}
+{% block main %}
+<style>
+    .mdb-color.lighten-3 {
+        background-color: #716558 !important;
+    }
+</style>
+
+ <!-- First row -->
+<div class="row">
+    <!-- First column -->
+    <div class="col-lg-4 mb-4">
+
+        <!--Card-->
+        <div class="card card-cascade narrower">
+
+            <!--Card image-->
+            <div class="view gradient-card-header mdb-color lighten-3">
+                <h5 class="mb-0 font-weight-bold">{{ current_user.username }}</h5>
+            </div>
+            <!--/Card image-->
+
+            <!-- Card content -->
+            <div class="card-body text-center">
+                <img class="rounded-circle account-img" src="static/avatar/{{ current_user.avatar.file_name }}"width="75" height="75">
+
+                <p class="text-muted"><medium>{{ current_user.email }}</medium></p>
+                <div class="row flex-center">
+                    <div class="form-group">           
+                        <button type="button" class="btn btn-info btn-rounded btn-sm" data-toggle="modal" data-target="#avatarModal">
+                          Change Profile Picture
+                        </button>  
+                    </div>
+                    <div class="form-group">
+
+                        <button class="btn btn-danger btn-rounded btn-sm" data-toggle="modal" data-target="#deactivateModal">Deactivate Account</button>
+                    </div>
+                </div>
+            </div>
+            <!-- /.Card content -->
+
+        </div>
+        <!--/.Card-->
+
+    </div>
+    <!-- /.First column -->
+    <!-- Second column -->
+    <div class="col-lg-8 mb-4">
+
+        <!--Card-->
+        <div class="card card-cascade narrower">
+
+            <!--Card image-->
+            <div class="view gradient-card-header mdb-color lighten-3">
+                <h5 class="mb-0 font-weight-bold">Edit Account</h5>
+            </div>
+            <!--/Card image-->
+
+            <!-- Card content -->
+            <div class="card-body text-center">
+                <div class="card-body text-center">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                      {% if messages %}
+                        {% for category, message in messages %}
+                          <div class="alert alert-{{ category }}">
+                            {{ message }}
+                          </div>
+                        {% endfor %}
+                      {% endif %}
+                    {% endwith %}
+                </div>
+                <!-- Update Email -->
+                <form name ="form_email" method="POST" action="" enctype="multipart/form-data">
+                    {{ form_email.hidden_tag() }}
+                    <fieldset class="form-group">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="md-form mb-0">
+                                    <div class="form-group">
+                                        {{ form_email.email.label(class="form-control-label") }}
+                                        {% if form_email.email.errors %}
+                                            {{ form_email.email(class="form-control form-control-lg is-invalid") }}
+                                            <div class="invalid-feedback">
+                                                {% for error in form_email.email.errors %}
+                                                    <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            {{ form_email.email(class="form-control form-control-lg") }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>          
+                    </fieldset>
+                    <div class="form-group">
+                        {{ form_email.submit(class="btn btn-outline-info") }}
+                    </div>
+                </form>
+              
+                <!-- Update Name -->
+                <form name ="form_name" method="POST" action="" enctype="multipart/form-data">
+                    {{ form_name.hidden_tag() }}
+                    <fieldset class="form-group">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="md-form mb-0">
+                                    <div class="form-group">
+                                        {{ form_name.firstname(class="form-control", placeholder="First Name") }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="md-form mb-0">
+                                    <div class="form-group">
+                                        {{ form_name.lastname(class="form-control", placeholder="Last Name") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>        
+                    </fieldset>
+                    <div class="form-group">
+                        {{ form_name.submit(class="btn btn-outline-info") }}
+                    </div>
+                </form>
+                <!-- Update Password -->
+                <form name="form_password" method="POST" action="{{ url_for('account') }}" enctype="multipart/form-data">
+                    {{ form_password.hidden_tag() }}
+                    <fieldset class="form-group">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="md-form mb-0">
+                                    <div class="form-group">
+                                        {% if form_password.old_password.errors %}
+                                            {{ form_password.old_password(class="form-control form-control-lg is-invalid") }}
+                                            <div class="invalid-feedback">
+                                                {% for error in form_password.old_password.errors %}
+                                                    <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            {{ form_password.old_password(class="form-control", placeholder="Old Password") }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="md-form mb-0">       
+                                    <div class="form-group">
+                                        {% if form_password.password.errors %}
+                                            {{ form_password.password(class="form-control form-control-lg is-invalid") }}
+                                            <div class="invalid-feedback">
+                                                {% for error in form_password.password.errors %}
+                                                    <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            {{ form_password.password(class="form-control", placeholder="New Password") }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="md-form mb-0">
+                                    <div class="form-group">
+                                        {% if form_password.confirm_password.errors %}
+                                            {{ form_password.confirm_password(class="form-control form-control-lg is-invalid") }}
+                                            <div class="invalid-feedback">
+                                                {% for error in form_password.confirm_password.errors %}
+                                                    <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            {{ form_password.confirm_password(class="form-control", placeholder="Confirm Password") }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                
+                    </fieldset>                       
+                    <div class="form-group">
+                        {{ form_password.submit(class="btn btn-outline-info") }}
+                    </div>
+                </form>
+                <!-- Update School -->
+                <form name="form_school" method="POST" action="" enctype="multipart/form-data">
+                    {{ form_school.hidden_tag() }}
+                    <fieldset class="form-group">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="md-form mb-0">
+                                    <div class="form-group">
+                                        {% if form_school.school.errors %}
+                                            {{ form_school.school(class="form-control form-control-lg is-invalid") }}
+                                            <div class="invalid-feedback">
+                                                {% for error in form_school.school.errors %}
+                                                    <span>{{ error }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            {{ form_school.school(class="form-control", placeholder="School") }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>        
+                    </fieldset>
+                    <div class="form-group">
+                        {{ form_school.submit(class="btn btn-outline-info") }}
+                    </div>
+                </form>
+            </div>
+            <!-- /.Card content -->
+
+        </div>
+        <!--/.Card-->
+    </div>
+    <!-- /.Second column -->
+</div>
+<!-- /.First row -->
+            
+<!-- Avater Popup Modal -->
+
+<div class="modal fade" id="avatarModal" tabindex="-1" role="dialog" aria-labelledby="avatarModalModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document" >
+  <form  method="POST" action="{{ url_for('account') }}">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="avatarModalLabel">Select an Avatar</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <select class="image-picker" id="avatarSelect" name="avatarSelect">
+              {% for file in avatar_files %}
+              <option data-img-src="static/avatar/{{ file.file_name }}" value="{{ file.id }}"></option>
+              {% endfor %}  
+        </select>
+            
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-default" type="submit">Update Avatar</button>
+      </div>
+    </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="deactivateModal" tabindex="-1" role="dialog" aria-labelledby="deactivateModalModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deactivateModalLabel">Deactivate Account</h5>
+            <head>
+                <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+                <script type=text/javascript>
+                    function doCheck(){
+                        var allFilled = true;
+
+                        var inputs = document.getElementsByTagName('input');
+                        for(var i=0; i<inputs.length; i++){
+                            if(inputs[i].type == "text" && inputs[i].value == ''){
+                                allFilled = false;
+                                break;
+                            }
+                        }
+
+                        document.getElementById("mysubmit").disabled = !allFilled;
+                    }
+
+                    window.onload = function(){
+                    var inputs = document.getElementsByTagName('input');
+                    for(var i=0; i<inputs.length; i++){
+                        if(inputs[i].type == "text"){
+                            inputs[i].onkeyup = doCheck;
+                            inputs[i].onblur = doCheck;
+                        }
+                    }
+                    };
+                    function confirmSubmit()
+                    {
+                        if(confirm("Are you sure to delete this account?"))
+                        {
+                            document.getElementById("mysubmit").submit();
+                        }
+                        return false;
+                    }
+
+                </script>
+            </head>
+
+            <body>
+                <div class='container'>
+                You are about to deactivate your account. This will erase all your
+        information and they will be unrecoverable. If you are sure you want to
+        deactivate your account please fill the form below and hit the deactivate
+        button
+                    <form name="form_account_deactivate" method="POST" action="{{ url_for('account_deactivate') }}">
+                        First Name:	<input type=text size=30 name=FirstName><br>
+                        Last Name: <input type=text size=30 name=LastName><br>
+                        <button type="submit" id="mysubmit" class='btn btn-default' onclick=" return confirmSubmit()" disable>Deactivate</button>
+                    </form>
+                <p id=result></p>
+                </div>
+            </body>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock main %} 

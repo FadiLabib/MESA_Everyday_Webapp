@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block content %}
+
+    <head>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script type=text/javascript>
+			function doCheck(){
+                var allFilled = true;
+
+                var inputs = document.getElementsByTagName('input');
+                for(var i=0; i<inputs.length; i++){
+                    if(inputs[i].type == "text" && inputs[i].value == ''){
+                        allFilled = false;
+                        break;
+                    }
+                }
+
+                document.getElementById("mysubmit").disabled = !allFilled;
+            }
+
+            window.onload = function(){
+            var inputs = document.getElementsByTagName('input');
+            for(var i=0; i<inputs.length; i++){
+                if(inputs[i].type == "text"){
+                    inputs[i].onkeyup = doCheck;
+                    inputs[i].onblur = doCheck;
+                }
+            }
+            };
+			function confirmSubmit()
+            {
+                if(confirm("Are you sure to delete this account?"))
+                {
+                    document.getElementById("mysubmit").submit();
+                }
+                return false;
+            }
+
+		</script>
+	</head>
+
+	<body>
+		<div class='container'>
+        You are about to deactivate your account. This will erase all your
+information and they will be unrecoverable. If you are sure you want to
+deactivate your account please fill the form below and hit the deactivate
+button
+
+		<h3>Deactivate Account</h3>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+			<form name="form_account_deactivate" method="POST" action="{{ url_for('account_deactivate') }}">
+                First Name:	<input type=text size=30 name=FirstName><br>
+                Last Name: <input type=text size=30 name=LastName><br>
+
+				<button type="submit" id="mysubmit" class='btn btn-default' onclick=" return confirmSubmit()" disable>Deactivate</button>
+			</form>
+		<p id=result></p>
+		</div>
+	</body>
+
+
+
+
+{% endblock content %}

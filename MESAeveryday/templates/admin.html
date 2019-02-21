@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<!-- Added by Millen -->
+<!-- Admin View Placeholder -->
+
+<!--Navbar-->
+<ul class="nav navbar-nav nav-flex-icons ml-auto">
+    <li class = "nav-item">
+        <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
+    </li>
+</ul>
+
+<div class="container-fluid"> 
+    You are now in admin view   
+    <li><a href="{{ url_for('admin_control') }}">Control</a></li>
+    <li><a href="{{ url_for('admin_settings') }}">Settings</a></li>
+</div>
+
+
+<main>
+
+    <div class="container-fluid">
+
+        <div class="row">
+
+            <!-- Catches flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+
+            <!--Panel-->
+            <div class="card mb-4">
+                <div class="card-header white-text primary-color">
+                    Top Scores
+                </div>
+                <div class="card-body">
+                    {% for badge in badges %}
+                        <img class="rounded-circle account-img" src="../static/badge_icons/{{ badge.icon.file_name }}"> {{ badge.badge_name }} 
+                        <br> First Name | Last Name | School | Points | Level <br>
+                        {% for user in top_scores[badge.badge_id] %}
+                            {{ user.first_name }} | {{ user.last_name }} | {{ user.school_name }} | {{ user.total_points }} | {{ user.current_level }} <br>
+                        {% endfor %}
+                    {% endfor %}                          
+                </div>
+            </div>
+            <!--/.Panel-->          
+        </div>
+    </div>
+</main>
+<!--Main layout-->
+
+
+{% endblock content %}
+
+{% block scripts %}
+    {{ super() }}
+{% endblock scripts %}

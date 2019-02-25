@@ -40,7 +40,54 @@
             <div class="form-group">
                 {{ form_stamp.submit(class="btn btn-outline-info") }}
             </div>
+        </form>{% extends "layout.html" %}
+{% block content %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+
+            <!-- Add Stamp -->
+
+        <form name ="form_stamp" method="POST" action="" enctype="multipart/form-data">
+            {{ form_stamp.hidden_tag() }}
+
+            <fieldset class="form-group">
+                 <div class="form-group">
+                        {% if form_stamp.badge.errors %}
+                            {{ form_stamp.badge(class="form-control form-control-lg is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form_stamp.badge.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form_stamp.badge(class="form-control", placeholder="Badge") }}
+                        {% endif %}
+                </div>
+            </fieldset>
+
+            <fieldset class="form-group">
+                <div class="form-group">
+                    {{ form_stamp.badgeName(class="form-control", placeholder="Stamp") }}
+                </div>
+
+            </fieldset>
+            <div class="form-group">
+                {{ form_stamp.submit(class="btn btn-outline-info") }}
+            </div>
         </form>
+
+
+
+{% endblock content %}
+
 
 
 

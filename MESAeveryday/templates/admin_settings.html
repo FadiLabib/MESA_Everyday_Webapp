@@ -17,12 +17,7 @@
 
 </div>
 
-    <div class="content-section">
-    <legend class="border-bottom mb-4">Manage Badge and Stamp</legend>
-         <li><a href="{{ url_for('add_stamp') }}">Add Stamp</a></li>
-    <li><a href="{{ url_for('delete_stamp') }}">Delete Stamp</a></li>
-    <li><a href="{{ url_for('edit_badge') }}">Edit Badge Name</a></li>
-    </div>
+   
 
 <div class="content-section">
 
@@ -36,6 +31,108 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
+     <!-- Add Stamp -->
+
+        <form name ="form_stamp_add" method="POST" action="" enctype="multipart/form-data">
+            {{ form_stamp.hidden_tag() }}
+
+            <fieldset class="form-group">
+                 <div class="form-group">
+
+                            {{ form_stamp_add.stamp_badge(class="form-control", placeholder="Badge_Stamp") }}
+                </div>
+            </fieldset>
+
+            <fieldset class="form-group">
+                <div class="form-group">
+                    {{ form_stamp_add.badgeName(class="form-control", placeholder="Stamp") }}
+                </div>
+
+            </fieldset>
+            <div class="form-group">
+                {{ form_stamp_add.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+
+    <!-- Edit Badge -->
+
+        <form name ="form_badge" method="POST" action="" enctype="multipart/form-data">
+            {{ form_badge.hidden_tag() }}
+
+            <fieldset class="form-group">
+                 <div class="form-group">
+                        {% if form_badge.badge.errors %}
+                            {{ form_badge.badge(class="form-control form-control-lg is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form_badge.badge.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form_badge.badge(class="form-control", placeholder="Badge") }}
+                        {% endif %}
+                </div>
+            </fieldset>
+
+            <fieldset class="form-group">
+                <div class="form-group">
+                    {{ form_badge.badge_Name(class="form-control", placeholder="Badge Name") }}
+                </div>
+
+            </fieldset>
+            <div class="form-group">
+                {{ form_badge.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+   <!-- Delete stamp -->
+        <form name="form_stamp" method="POST" action="" enctype="multipart/form-data">
+            {{ form_stamp.hidden_tag() }}
+            <fieldset class="form-group">
+                 <div class="form-group">
+                        {% if form_stamp.badge_delete.errors %}
+                            {{ form_stamp.badge_delete(class="form-control form-control-lg is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form_stamp.badge_delete.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form_stamp.badge_delete(class="form-control", placeholder="badge") }}
+                        {% endif %}
+                </div>
+            </fieldset>
+           <fieldset class="form-group">
+                 <div class="form-group">
+
+                            {{ form_stamp.stamp_delete(class="form-control", placeholder="School") }}
+                </div>
+            </fieldset>
+            <div class="form-group">
+                {{ form_stamp.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+
+        <script>
+                var badge_select = document.getElementById("badge_delete");
+                var stamp_select = document.getElementById("stamp_delete");
+                badge_select.onchange = function()  {
+
+                    badge = badge_select.value;
+
+                    fetch('/stamp/' + badge).then(function(response) {
+                        response.json().then(function(data) {
+                            var optionHTML = '';
+                            for (var stamp of data.stamps) {
+                                optionHTML += '<option value="' + stamp.id + '">' + stamp.name + '</option>';
+                            }
+                            stamp_select.innerHTML = optionHTML;
+
+
+                        })
+
+                    });
+                }
+            </script>
     
     <legend class="border-bottom mb-4">Modify Badge Levels</legend>
     Set how many points are required for each level. <br/>

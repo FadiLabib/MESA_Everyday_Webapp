@@ -131,7 +131,7 @@ class EarnStampsForm(FlaskForm):
 
 class AddStampForm(FlaskForm):
 
-    badge = SelectField('Badge', coerce=int, choices=Badge.get_all_badges_id_with_names())
+    stamp_badge = SelectField('Badge', coerce=int, choices=Badge.get_all_badges_id_with_names())
     badgeName = StringField('badgeName')
     submit = SubmitField('Add Stamp')
 
@@ -139,8 +139,8 @@ class AddStampForm(FlaskForm):
 
 class DeleteStampForm(FlaskForm):
 
-    badge = SelectField('Badge', coerce=int, choices=Badge.get_all_badges_id_with_names())
-    stamp = SelectField('Stamp', choices=[])
+    badge_delete = SelectField('Badge', coerce=int, choices=Badge.get_all_badges_id_with_names())
+    stamp_delete = SelectField('Stamp', choices=[])
     submit = SubmitField('Delete Stamp')
 
 class RemoveOldAccountsForm(FlaskForm):
@@ -154,7 +154,7 @@ class ResetDateForm(FlaskForm):
 class EditBadgeForm(FlaskForm):
 
     badge = SelectField('Badge', coerce=int, choices=Badge.get_all_badges_id_with_names())
-    badgeName = StringField('badgeName')
+    badge_Name = StringField('badgeName')
     submit = SubmitField('Update Badge')
 
 

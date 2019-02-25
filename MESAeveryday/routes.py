@@ -705,10 +705,40 @@ def admin_control():
 @login_required
 def admin_settings():
   
-    try: 
-        if not User.verify_role(current_user.id):     
+        if not User.verify_role(current_user.id):
             return redirect(url_for('dashboard'))
-            
+
+        addstampform=AddStampForm()
+        editbadgeform=EditBadgeForm()
+
+        if addstampform.badgeName.data and addstampform.validate_on_submit():
+            badgeId = addstampform.stamp_badge.data
+            stampName = request.form.get('badgeName')
+            newStamp = Stamp(stampName, badgeId, 0, 0)
+            Stamp.add_stamp(newStamp)
+
+            flash('New Stamp has been created!', 'success')
+            return redirect(url_for('admin_settings'))
+
+        if  editbadgeform.badge_Name.data and editbadgeform.validate_on_submit():
+            badgeId = editbadgeform.badge.data
+            badgeName = request.form.get('badge_Name')
+            Badge.update_badge_name(badgeId, badgeName)
+            flash('Badge name has been update!', 'success')
+            return redirect(url_for('admin_settings'))
+
+        deletestampform = DeleteStampForm()
+        deletestampform.stamp_delete.choices = Stamp.get_stamps_of_badge(1)
+
+        if request.method == 'POST':
+            stampName = Stamp.get_stamp_by_stamp_id(deletestampform.stamp_delete.data)
+            #print(deletestampform.stamp.data)
+            Stamp.delete_stamp_by_id(deletestampform.stamp_delete.data)
+            flash('Delete successfully!', 'success')
+            return redirect(url_for('admin_settings'))
+
+
+
         badges = Badge.get_all_badges()
         badge_forms = {}
 
@@ -733,10 +763,8 @@ def admin_settings():
             form.level10_points.data = badge.level10_points                    
             badge_forms[badge.badge_id] = form 
 
-        return render_template('admin_settings.html', badge_forms=badge_forms, badges=badges)
-    except:
+        return render_template('admin_settings.html', badge_forms=badge_forms, badges=badges,form_badge=editbadgeform,form_stamp_add=addstampform,form_stamp = deletestampform)
 
-        return redirect(url_for('error')) 
 
 
 @app.route("/add_school", methods=['GET','POST'])

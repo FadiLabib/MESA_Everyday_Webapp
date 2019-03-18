@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  h1,h2,h3,h4,h5,h6{font-family:Lato,'Helvetica Neue',Helvetica,Arial,sans-serif;
+font-weight:700}header.masthead{
+  position:relative;
+  background:url(../static/img/PIC_005.jpg) no-repeat center center;
+  background-size:cover;padding-top:14rem;
+  padding-bottom:14rem
+
+}
+</style>
+<body>
+
+  <!-- Masthead -->
+  <header class="masthead text-white text-center">
+    <div class="overlay"></div>
+    <div class="container">
+    	<div class="alert alert-danger">
+            You have tried to login too many times. Please try again later.
+        </div>
+	<button id="returnbtn" class="btn">Login Page</a></button>
+    </div>
+  </header>
+
+{% endblock content %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">           
+        document.getElementById("returnbtn").onclick = function () {
+        location.href = "{{ url_for('landpage') }}";
+        };
+    </script>
+{% endblock scripts %}

@@ -23,10 +23,9 @@ from sqlalchemy.orm import sessionmaker, relationship, backref
 #db_connection uses mysql+pymysql as otherwise certain libraries that are not supported by python3 will need to be installed
 #check link to it here: https://stackoverflow.com/questions/22252397/importerror-no-module-named-mysqldb
 # db_connection = 'mysql+pymysql://' + os.environ['MESAusername'] + ':' + os.environ['MESApassword'] + '@' + os.environ['MESAhostname'] + ':3306/' + os.environ['MESAusername']
-#db_connection = 'mysql+pymysql://' + os.environ['MESAusername'] + ':' + os.environ['MESApassword'] + '@' + os.environ['MESAhostname'] + ':3306/' + os.environ['MESAusername']
-db_connection = 'mysql+pymysql://' + 'devmed' + ':' + 'w3c$7aruSp' + '@' + 'db.cecs.pdx.edu' + ':3306/' + 'devmed'
+db_connection = 'mysql+pymysql://' + os.environ['MESAusername'] + ':' + os.environ['MESApassword'] + '@' + os.environ['MESAhostname'] + ':3306/' + os.environ['MESAusername']
 # Create a session with the database
-engine = create_engine(db_connection)
+engine = create_engine(db_connection, pool_recycle=3600)
 Base = declarative_base(engine)
 metadata = Base.metadata
 Session = sessionmaker(bind=engine)
@@ -86,6 +85,7 @@ class User(Base, UserMixin):
             user_id = s.loads(token)['user_id']
             return session.query(User).filter(User.id==user_id).first()
         except:
+            session.rollback()
             return None
    
     def get_all_username():
@@ -150,6 +150,7 @@ class User(Base, UserMixin):
         try:
             row = session.query(User).filter(User.id == id).first()
             row.password = hashed_pwd
+            session.commit()
         except:
             session.rollback()
             return False
@@ -220,6 +221,12 @@ class User(Base, UserMixin):
             session.rollback()
             return None
 
+    def get_users_by_school(school_id):
+        try: 
+            return session.query(User).filter(User.school_id == school_id)
+        except:
+            session.rollback()
+            return None
 
     # Added by Millen
     # Checks if user had an admin role
@@ -270,6 +277,47 @@ class School(Base):
         except:
             session.rollback()
             return None
+    def get_school():
+        try:
+            results=session.query(School.school_name).all()
+            return results
+        except:
+            session.rollback()
+            return None
+
+    def add_new_school(new_school):
+        try:
+            session.add(new_school)
+            session.commit()
+        except:
+            session.rollback()
+
+    def delete_school_by_id(id):
+        try:
+            other_school = School.get_school_by_name('Other')
+            users = User.get_users_by_school(id)
+            for user in users:
+                user.school_id = other_school.school_id
+            session.query(School).filter(School.school_id == id).delete()
+            session.commit()
+        except:
+            session.rollback()
+            return None
+    def get_school_by_id(id):
+        try:
+           return session.query(School.school_name).filter(School.school_id == id).first()
+
+        except:
+            session.rollback()
+            return None
+    def get_school_by_name(name):
+        try:
+           return session.query(School).filter(School.school_name == name).first()
+
+        except:
+            session.rollback()
+            return None
+
 
 #Class for the "badges" table
 class Badge(Base):
@@ -351,6 +399,29 @@ class Badge(Base):
             return None
            
 
+
+    def update_badge_name(badge_id,new_badge_name):
+        try:
+           badge=session.query(Badge).filter(Badge.badge_id==badge_id).first()
+           badge.badge_name=new_badge_name
+           session.commit()
+
+        except:
+            session.rollback()
+            return None
+
+    def update_icon(id, new_icon_id):
+        try:
+            badge = session.query(Badge).filter(Badge.badge_id == id).first()
+            badge.icon_id = new_icon_id
+            session.commit()
+            return True
+        except:
+            session.rollback()
+            return False
+
+
+
             
     def change_points(badge_id, level1_points, level2_points, level3_points, level4_points, level5_points, level6_points, level7_points, level8_points, level9_points, level10_points):
         try: 
@@ -371,6 +442,7 @@ class Badge(Base):
             session.rollback()
             return False
             
+
 #Class for the "stamps" table
 class Stamp(Base, UserMixin):
     __tablename__ = 'stamps'
@@ -389,8 +461,8 @@ class Stamp(Base, UserMixin):
         self.points = points
         self.url = url
 
-    def get_stamps_of_badge(user_id, badge_id):
-      #  try:
+    def get_user_stamps_of_badge(user_id, badge_id):
+        try:
             reset_date = session.query(Reset_Date.reset_date).first().reset_date.strftime('%m-%d')
             if datetime.datetime.now().strftime('%m-%d') >= reset_date:
                 last_reset_date = str(datetime.datetime.now().year) + '-' + str(reset_date)
@@ -398,7 +470,21 @@ class Stamp(Base, UserMixin):
                 last_reset_date = str(datetime.datetime.now().year -1) + '-' + str(reset_date)
             subquery = session.query(UserStamp.stamp_id).filter(and_(UserStamp.user_id == user_id, UserStamp.log_date >= last_reset_date))
             return session.query(Stamp.stamp_id, Stamp.stamp_name).filter(Stamp.badge_id == badge_id).filter(Stamp.stamp_id.notin_(subquery))
-       # except:
+        except:
+            session.rollback()
+            return None
+
+    def get_all_stamps():
+        try:
+            return session.query(Stamp.stamp_id, Stamp.stamp_name)
+        except:
+            session.rollback()
+            return None
+
+    def get_stamps_of_badge(badge_id):
+        try:
+            return session.query(Stamp.stamp_id, Stamp.stamp_name).filter(Stamp.badge_id == badge_id)
+        except:
             session.rollback()
             return None
 
@@ -414,6 +500,53 @@ class Stamp(Base, UserMixin):
         except:
             session.rollback()
             return None
+
+
+    def get_earned_stamps_of_badge(user_id, badge_id):
+        try:
+            subquery = session.query(UserStamp.stamp_id).filter(UserStamp.user_id == user_id)
+            return session.query(Stamp).filter(Stamp.badge_id == badge_id).filter(Stamp.stamp_id.in_(subquery))
+        except:
+            session.rollback()
+            return None
+
+    def add_stamp(new_stamp):
+        try:
+            session.add(new_stamp)
+            session.commit()
+        except:
+            session.rollback()
+            return None
+    def get_all_stampid_stampname():
+        try:
+            return session.query(Stamp.stamp_id, Stamp.stamp_name).all()
+        except:
+            session.rollback()
+            return None
+
+    def get_stamp_by_stamp_id(stamp_id):
+        try:
+            return session.query(Stamp.stamp_name).filter(Stamp.stamp_id == stamp_id).first()
+        except:
+            session.rollback()
+            return None
+
+    def get_stamp_by_name(name):
+        try:
+            return session.query(Stamp).filter(Stamp.stamp_name == name).first()
+        except:
+            session.rollback()
+            return None
+
+    def delete_stamp_by_id(id):
+        try:
+            session.query(Stamp).filter(Stamp.stamp_id == id).delete()
+            session.commit()
+        except:
+            session.rollback()
+            return None
+
+
             
     def get_max_points(badge_id):
         try:
@@ -423,6 +556,7 @@ class Stamp(Base, UserMixin):
             return None
             
     
+
 
 #Class for the "user_stamps" table
 class UserStamp(Base, UserMixin):
@@ -451,6 +585,8 @@ class UserStamp(Base, UserMixin):
             session.rollback()
             return False
         return True
+
+
 
     def get_earned_stamps_of_badge(user_id, badge_id):
         try:

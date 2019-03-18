@@ -3,6 +3,7 @@ flask-bcrypt
 flask-login
 flask-mail
 flask-wtf
+flask_limiter
 SQLAlchemy
 pymysql
 google-api-python-client

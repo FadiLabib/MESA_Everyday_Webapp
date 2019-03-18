@@ -5,11 +5,15 @@ Each route selects the proper forms for each page, calculates the data to put in
 Modified from CoreyMSchafer's Flask Tutorial
 https://github.com/CoreyMSchafer/code_snippets/blob/master/Python/Flask_Blog/06-Login-Auth/flaskblog/routes.py
 """
-from flask import render_template, url_for, flash, redirect, request
-from MESAeveryday import app, bcrypt, mail
-from MESAeveryday.forms import RegistrationForm, LoginForm, RequestResetForm, RequestResetUserForm, ResetPasswordForm, EarnStampsForm, UpdateEmailForm, UpdateNameForm, UpdateSchoolForm, UpdatePasswordForm, RemoveOldAccountsForm, ResetDateForm, BadgePointsForm
-from MESAeveryday.models import User, School, Badge, Stamp, UserStamp, Avatar, Reset_Date
+from MESAeveryday import app, bcrypt, mail, limiter
+from flask import render_template, url_for, flash, redirect, request,jsonify
+from MESAeveryday.forms import RegistrationForm, LoginForm, RequestResetForm, RequestResetUserForm, ResetPasswordForm, EarnStampsForm, UpdateEmailForm, UpdateNameForm, UpdateSchoolForm, \
+    UpdatePasswordForm,AddSchoolForm,DeleteSchoolForm,AddStampForm,DeleteStampForm,UpdatePasswordForm, RemoveOldAccountsForm, ResetDateForm,EditBadgeForm,BadgePointsForm
+
+from MESAeveryday.models import User, School, Badge, Stamp, UserStamp, Avatar, Reset_Date, Icon
+
 from MESAeveryday.calendar_events import get_event_list, searchEvents, get_mesa_events
+
 from flask_login import login_user, current_user, logout_user, login_required, login_manager
 from flask_mail import Message
 from datetime import datetime
@@ -35,12 +39,17 @@ def landpage():
     """
     
     try:
+        # Send user to the dashboard if they are logged in. This page is intended for those who have not logged in yet
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard'))
         
         form_register = RegistrationForm()
         form_login = LoginForm()
-        return render_template('landpage.html', title='Landing', form_l=form_login, form_r=form_register)
-    except:    
-
+        return render_template('landpage.html', 
+                               title='Landing', 
+                               form_l=form_login, 
+                               form_r=form_register)
+    except:
         return redirect(url_for('error'))
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -48,8 +57,12 @@ def register():
     """
       Route that processes a registration request
       After the registration is processes, it renders the landing page
-    """   
+    """ 
     try:
+        # Send user to the dashboard if they are logged in. Users shouldn't be able to create accounts while logged in
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard'))
+
         form_register = RegistrationForm()
         form_login = LoginForm()
 
@@ -60,7 +73,7 @@ def register():
             new_username = generate_username(form_register.firstname.data, form_register.lastname.data, random_code())
            
             if new_username == 'ERROR':
-                flash('Sorry, we were unable to generate an account for you.', 'danger')
+                flash('Sorry, we were unable to generate an account for you!', 'danger')
             else:
                 # Generate hashed password
                 hashed_password = bcrypt.generate_password_hash(form_register.password.data).decode('utf-8')
@@ -71,23 +84,29 @@ def register():
                 User.add_new_user(new_user)
 
                 # Tell the user their new username and send them an email with the username
-                flash('Your account has been created! You are now able to log in with the username: ' + new_username, 'success')
+                flash('Your account has been created! You are now able to log in with the username: ' + new_username + '!', 'success')
                 send_generate_username(form_register.email.data, new_username)
 
-        return render_template('landpage.html', title='Landing', form_l=form_login, form_r=form_register)
+        return render_template('landpage.html', 
+                               title='Landing', 
+                               form_l=form_login, 
+                               form_r=form_register)
     except:
-
         return redirect(url_for('error'))      
 
 @app.route("/login", methods=['GET', 'POST'])
+@limiter.limit ('50 per hour')
 def login():
     """
-      Route that processes a login attempt
-      If the login is a success they are taken to either the page they last attempted to visit or the dashboard
-      If the login fails, the landing page is rendered
+        Route that processes a login attempt
+        If the login is a success they are taken to either the page they last attempted to visit or the dashboard
+        If the login fails, the landing page is rendered
     """
     
     try:
+        # Send user to the dashboard if they are logged in. This page is intended for those who haven't logged in yet
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard'))
         form_register = RegistrationForm()
         form_login = LoginForm()
 
@@ -100,15 +119,18 @@ def login():
                 User.update_last_login(user.id, datetime.now())
                 login_user(user, remember=form_login.remember.data)
                 next_page = request.args.get('next')
+                limiter.reset()
                 return redirect(next_page) if next_page else redirect(url_for('dashboard'))
                 
             # User did not enter the correct credentials
             else:
-                flash('Login Unsuccessful. Please check username and password', 'danger')
+                flash('Login unsuccessful. Please check your username and password!', 'danger')
                 
-        return render_template('landpage.html', title='Landing', form_l=form_login, form_r=form_register)
+        return render_template('landpage.html', 
+                               title='Landing', 
+                               form_l=form_login, 
+                               form_r=form_register)
     except:
-
         return redirect(url_for('error'))
 
 @app.route("/logout")
@@ -121,7 +143,6 @@ def logout():
         logout_user()
         return redirect(url_for('landpage'))
     except:
-
         return redirect(url_for('error'))
 
 
@@ -142,12 +163,13 @@ def reset_request():
         if form.validate_on_submit():
             user = User.get_user_by_email(form.email.data)
             send_reset_email(user)
-            flash('An email has been sent with instructions to reset your password.', 'info')
+            flash('An email has been sent with instructions for resetting your password!', 'info')
             return redirect(url_for('landpage'))
 
-        return render_template('reset_request.html', title='Rest Password', form=form)
+        return render_template('reset_request.html', 
+                               title='Rest Password', 
+                               form=form)
     except:
-
         return redirect(url_for('error'))
         
 @app.route("/reset_password/<token>", methods=['GET', 'POST'])
@@ -165,7 +187,7 @@ def reset_token(token):
         # Verify that the token is valid and has not expired
         user = User.verify_reset_token(token)
         if user is None:
-            flash('That is an invalid or expired token', 'warning')
+            flash('That is an invalid or expired token!', 'warning')
             return redirect(url_for('landpage'))
 
         form = ResetPasswordForm()
@@ -178,15 +200,16 @@ def reset_token(token):
           
             # Reset the password. If it updates correctly, tell the user that their password was updated
             if User.reset_pwd(user.id, hashed_password) == True:
-                flash('Your password has been updated! You are now able to log in', 'success')
+                flash('Your password has been updated! You may now log in using it.', 'success')
                 return redirect(url_for('landpage'))
             # If the password didn't update correctly, tell the user that it failed
             else:
-                flash('Sorry, we were unable to update your password', 'danger')
+                flash('Sorry, we were unable to update your password!', 'danger')
                 return redirect(url_for('landpage'))
-        return render_template('reset_token.html', title='Rest Password', form=form)
+        return render_template('reset_token.html', 
+                               title='Rest Password', 
+                               form=form)
     except:
-
         return redirect(url_for('error'))
 
 @app.route("/forgot_username", methods=['GET', 'POST'])
@@ -207,13 +230,22 @@ def forgot_username():
         if form.validate_on_submit():
             user = User.get_user_by_email(form.email.data)
             send_forgot_username(user)
-            flash('An email has been sent with your username.', 'info')
+            flash('An email has been sent with your username attached!', 'info')
             return redirect(url_for('landpage'))
-        return render_template('forgot_username.html', title='Rest User', form=form)
+        return render_template('forgot_username.html', 
+                               title='Rest User', 
+                               form=form)
     except:
-
         return redirect(url_for('error'))    
-        
+
+@app.errorhandler(429)
+def too_many_request(e):
+    return render_template('login_limit.html')
+
+@app.route("/term_of_service", methods=['GET'])
+def term_of_service():
+    return render_template('term_of_service.html')
+
 @app.route("/error", methods=['GET'])
 def error():
     return render_template('error.html')        
@@ -254,22 +286,24 @@ def dashboard():
         
         # Parse the events into incoming and special groups
         mesa_days = searchEvents(events, ['Mesa','Day'])
-        other_days = searchEvents(events, ['Mesa','Day'])
-        upcoming_events = [event for event in events if event['remain_days'] < 15]
-        mesa_events = get_mesa_events(events)
-        
+        demo_days = searchEvents(events, ['Demo','Day'])
+        future_events = [event for event in events if event['remain_days'] < 15]
+        upcoming_events = [event for event in events if event['remain_days'] < 8]
+        current_events = [event for event in events if event['remain_days'] < 3]
+        mesa_events = get_mesa_events(future_events)
+
         return render_template('dashboard.html',
                                badges=badges,
                                progress=all_progress,
                                all_max_points=all_max_points,
                                events=events,
-                               number_upcoming=len(upcoming_events),
+                               number_current=len(current_events),
                                upcoming_events=upcoming_events,
+                               current_events=current_events,
                                mesa_days=mesa_days,
                                mesa_events=mesa_events,
-                               other_days=other_days)
+                               demo_days=demo_days)
     except:
-
         return redirect(url_for('error'))
 
 @app.route("/events", methods=['GET', 'POST'])
@@ -299,25 +333,24 @@ def events():
 
         # Parse the events into incoming and special groups
         mesa_days = searchEvents(events, ['Mesa','Day'])
-        other_days = searchEvents(events, ['Mesa','Day'])
-        upcoming_events = [event for event in events if event['remain_days'] < 15]
-        mesa_events = get_mesa_events(events)
+        demo_days = searchEvents(events, ['Demo','Day'])
+        future_events = [event for event in events if event['remain_days'] < 15]
+        upcoming_events = [event for event in events if event['remain_days'] < 8]
+        current_events = [event for event in events if event['remain_days'] < 3]
+        mesa_events = get_mesa_events(future_events)
 
         return render_template('events.html',
                                badges=badges,
                                progress=all_progress,
                                events=events,
-                               number_upcoming=len(upcoming_events),
+                               number_current=len(current_events),
                                upcoming_events=upcoming_events,
+                               current_events=current_events,
                                mesa_days=mesa_days,
                                mesa_events=mesa_events,
-                               other_days=other_days)
+                               demo_days=demo_days)
     except:
-
         return redirect(url_for('error'))
-
-
-
    
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
@@ -327,6 +360,10 @@ def account():
         Page is broken up into separate forms for each section, so they can only update their account one piece at a time
     """    
     try:
+        # Send admins to the admin page
+        if (User.verify_role(current_user.id)):
+            return redirect(url_for('admin'))
+
         emailform = UpdateEmailForm()
         nameform = UpdateNameForm()
         schoolform = UpdateSchoolForm()
@@ -343,7 +380,7 @@ def account():
             if User.reset_pwd(myaccount.id, hashed_password) == True:
                 flash('Your account has been successfully updated!', 'success')
             else:
-                flash('Sorry, we were unable to update your account', 'danger')
+                flash('Sorry, we were unable to update your account!', 'danger')
             return redirect(url_for('account'))
 
         #Update email
@@ -351,7 +388,7 @@ def account():
             if User.update_email(myaccount.id, emailform.email.data) == True:
                 flash('Your account has been successfully updated!', 'success')
             else:
-                flash('Sorry, we were unable to update your account', 'danger')
+                flash('Sorry, we were unable to update your account!', 'danger')
             return redirect(url_for('account'))
 
         #Update name
@@ -359,7 +396,7 @@ def account():
             if User.update_name(myaccount.id, nameform.firstname.data, nameform.lastname.data) == True:
                 flash('Your account has been successfully updated!', 'success')
             else:
-                flash('Sorry, we were unable to update your account', 'danger')
+                flash('Sorry, we were unable to update your account!', 'danger')
             return redirect(url_for('account'))
 
         #Update school
@@ -367,21 +404,19 @@ def account():
             if User.update_school(myaccount.id, schoolform.school.data) == True:
                 flash('Your account has been successfully updated!', 'success')
             else:
-                flash('Sorry, we were unable to update your account', 'danger')
+                flash('Sorry, we were unable to update your account!', 'danger')
             return redirect(url_for('account'))
 
-        #Update avatar
         if request.method=='POST':
+
+            #Update avatar
             avatarSelect = request.form.get('avatarSelect')
             if avatarSelect:
                 if User.update_avatar(myaccount.id, avatarSelect) == True:
                     flash('Your account has been successfully updated!', 'success')
                 else:
-                    flash('Sorry, we were unable to update your account', 'danger')
+                    flash('Sorry, we were unable to update your account!', 'danger')
                 return redirect(url_for('account'))
-
-        #Load page
-
 
         # Get all the badges
         badges = Badge.get_all_badges_id_with_names()
@@ -401,21 +436,40 @@ def account():
         
         # Parse the events into incoming and special groups
         mesa_days = searchEvents(events, ['Mesa','Day'])
-        other_days = searchEvents(events, ['Mesa','Day'])
-        upcoming_events = [event for event in events if event['remain_days'] < 15]
+        demo_days = searchEvents(events, ['Demo','Day'])
+        future_events = [event for event in events if event['remain_days'] < 15]
+        upcoming_events = [event for event in events if event['remain_days'] < 8]
+        current_events = [event for event in events if event['remain_days'] < 3]
+        mesa_events = get_mesa_events(future_events)
         
-        return render_template('account.html', title='Account', avatar_files=Avatar.get_all_avatars(), form_email=emailform, form_name=nameform, form_password=passwordform, form_school=schoolform,                       events=events, number_upcoming=len(upcoming_events), upcoming_events=upcoming_events, mesa_days=mesa_days, badges=badges,
-                               other_days=other_days)
-         
+        return render_template('account.html', 
+                                title='Account', 
+                                badges=badges,
+                                avatar_files=Avatar.get_all_avatars(), 
+                                form_email=emailform, 
+                                form_name=nameform, 
+                                form_password=passwordform, 
+                                form_school=schoolform, 
+                                events=events, 
+                                number_current=len(current_events), 
+                                current_events=current_events, 
+                                upcoming_events=upcoming_events, 
+                                mesa_days=mesa_days,
+                                mesa_events=mesa_events,
+                                demo_days=demo_days)
+        
     except:    
-
         return redirect(url_for('error'))    
-
 
 @app.route("/account_deactivate", methods=['GET', 'POST'])
 @login_required
 def account_deactivate():
+
     try:
+        # Send admins to the admin page
+        if (User.verify_role(current_user.id)):
+            return redirect(url_for('admin'))
+
         myaccount = User.get_user_by_username(current_user.username)
         print(myaccount.id)
         if current_user.is_authenticated:
@@ -430,12 +484,12 @@ def account_deactivate():
                     logout_user()
                     return redirect(url_for('landpage'))
                 else :
-                    flash('Account does not match. Please check First Name and Last Name!!', 'danger')
+                    flash('Account information does not match. Please check your first and last name!', 'danger')
             return redirect(url_for('account'))
 
     except:
-
         return redirect(url_for('error')) 
+
 @app.route("/earn_stamps", methods=['GET', 'POST'])
 @login_required
 def earn_stamps():
@@ -446,6 +500,10 @@ def earn_stamps():
             as to whether or not they actually did the task
     """  
     try:
+        # Send admins to the admin page
+        if (User.verify_role(current_user.id)):
+            return redirect(url_for('admin'))
+
         # Get all badge names
         badge_names = [row.badge_name for row in Badge.get_all_badges_names()]   
 
@@ -454,7 +512,7 @@ def earn_stamps():
         
         forms, t = [], 1       # several pairs of forms (stamp, date, submit). t is used to assign unique id
         for badge in badges:
-            stamps = Stamp.get_stamps_of_badge(current_user.id, badge[0])
+            stamps = Stamp.get_user_stamps_of_badge(current_user.id, badge[0])
 
             if stamps is not None:
                 form = EarnStampsForm(badge[1], prefix=badge[1])    # create a pair of form. prefix -> make each form unique
@@ -486,14 +544,24 @@ def earn_stamps():
         
         # Parse the events into incoming and special groups
         mesa_days = searchEvents(events, ['Mesa','Day'])
-        other_days = searchEvents(events, ['Mesa','Day'])
-        upcoming_events = [event for event in events if event['remain_days'] < 15]
+        demo_days = searchEvents(events, ['Demo','Day'])
+        future_events = [event for event in events if event['remain_days'] < 15]
+        upcoming_events = [event for event in events if event['remain_days'] < 8]
+        current_events = [event for event in events if event['remain_days'] < 3]
+        mesa_events = get_mesa_events(future_events)
 
-        return render_template('earnstamps.html', title='Earn Stamps', forms=forms, badges=badges, events=events,
-                               number_upcoming=len(upcoming_events), upcoming_events=upcoming_events, mesa_days=mesa_days,
-                               other_days=other_days)
+        return render_template('earnstamps.html', 
+                                title='Earn Stamps', 
+                                forms=forms, 
+                                badges=badges, 
+                                events=events,
+                                number_current=len(current_events), 
+                                current_events=current_events, 
+                                upcoming_events=upcoming_events, 
+                                mesa_days=mesa_days,
+                                mesa_events=mesa_events,
+                                demo_days=demo_days)
     except:
-
         return redirect(url_for('error')) 
         
 @app.route("/badges<badge_id>", methods=['GET', 'POST'])
@@ -504,6 +572,10 @@ def check_badge(badge_id):
         The particular badge being view is passed in through the route
     """  
     try:
+        # Send admins to the admin page
+        if (User.verify_role(current_user.id)):
+            return redirect(url_for('admin'))
+
         # Get all the badges
         badges = Badge.get_all_badges()
 
@@ -547,14 +619,29 @@ def check_badge(badge_id):
         
         # Parse the events into incoming and special groups
         mesa_days = searchEvents(events, ['Mesa','Day'])
-        other_days = searchEvents(events, ['Mesa','Day'])
-        upcoming_events = [event for event in events if event['remain_days'] < 15]
-        mesa_events = get_mesa_events(events)
+        demo_days = searchEvents(events, ['Demo','Day'])
+        future_events = [event for event in events if event['remain_days'] < 15]
+        upcoming_events = [event for event in events if event['remain_days'] < 8]
+        current_events = [event for event in events if event['remain_days'] < 3]
+        mesa_events = get_mesa_events(future_events)
 
-        return render_template('badges.html', badges=badges, badge=badge, unearned=unearned_stamps, earned=earned_stamps, pt=points, lv=current_level, to_next_lv=to_next_lv, events=events,
-                               number_upcoming=len(upcoming_events), upcoming_events=upcoming_events, mesa_days=mesa_days, other_days=other_days, mesa_events=mesa_events)
+        return render_template('badges.html', 
+                                badges=badges,
+                                badge=badge, 
+                                unearned=unearned_stamps, 
+                                earned=earned_stamps, 
+                                pt=points, 
+                                lv=current_level, 
+                                to_next_lv=to_next_lv, 
+                                events=events,
+                                number_upcoming=len(upcoming_events),
+                                upcoming_events=upcoming_events, 
+                                number_current=len(current_events),
+                                current_events=current_events,
+                                mesa_days=mesa_days, 
+                                demo_days=demo_days, 
+                                mesa_events=mesa_events)
     except:
-
         return redirect(url_for('error')) 
 
 
@@ -569,7 +656,10 @@ def check_badge(badge_id):
 @app.route("/admin")
 @login_required
 def admin():
-
+    '''
+    Default landing page for admins.
+    Page displays the top three scores for each badge, and which users have those top 3 scores
+    '''
     try:
         # https://stackoverflow.com/questions/21895839/restricting-access-to-certain-areas-of-a-flask-view-function-by-role
         if not User.verify_role(current_user.id):
@@ -598,10 +688,27 @@ def admin():
                         record_holders.append(user)
             # Add the array of users/top scores to the total list of scores (indexed by the badge id)
             top_scores[badge.badge_id] = record_holders
-           
-        return render_template('admin.html', badges=badges, top_scores=top_scores)
-    except:
+        
+        # Call the google api and pull all upcoming events
+        events = get_event_list()
+        
+        # Parse the events into incoming and special groups
+        mesa_days = searchEvents(events, ['Mesa','Day'])
+        demo_days = searchEvents(events, ['Demo','Day'])
+        future_events = [event for event in events if event['remain_days'] < 15]
+        upcoming_events = [event for event in events if event['remain_days'] < 8]
+        current_events = [event for event in events if event['remain_days'] < 3]
+        mesa_events = get_mesa_events(future_events)
 
+        return render_template('admin.html', badges=badges, top_scores=top_scores, events=events,
+                                    number_upcoming=len(upcoming_events),
+                                    upcoming_events=upcoming_events, 
+                                    number_current=len(current_events),
+                                    current_events=current_events,
+                                    mesa_days=mesa_days, 
+                                    demo_days=demo_days, 
+                                    mesa_events=mesa_events)
+    except:
         return redirect(url_for('error')) 
 
 @app.route("/admin_control", methods=['GET', 'POST'])
@@ -615,13 +722,32 @@ def admin_control():
     try:    
         if not User.verify_role(current_user.id):
             return redirect(url_for('dashboard'))
-            
+    
         emailform = UpdateEmailForm()
         passwordform = UpdatePasswordForm()
         oldaccountsform = RemoveOldAccountsForm()
         resetdateform = ResetDateForm()
+        addschoolform = AddSchoolForm()
+        deleteschoolform =DeleteSchoolForm()
         resetdateform.reset_date.id = 'reset_date'
         admin_account = User.get_user_by_username(current_user.username)
+
+        #Add School
+        if addschoolform.schoolName.data and addschoolform.validate_on_submit():
+            schoolName = request.form.get('schoolName')
+            # Add school to the database
+            new_school = School(schoolName, '', '', '', '')
+            School.add_new_school(new_school)
+            rows = School.get_school()
+            flash('New school option has been added!', 'success')
+            return redirect(url_for('admin_control'))
+
+        #Delete School Form
+        if deleteschoolform.school.data and deleteschoolform.validate_on_submit():
+            school_id = deleteschoolform.school.data
+            School.delete_school_by_id(school_id)
+            flash('Successfully  deleted school!', 'success')
+            return redirect(url_for('admin_control'))
 
         #Update password
         if passwordform.password.data and passwordform.validate_on_submit():
@@ -629,7 +755,7 @@ def admin_control():
             if User.reset_pwd(admin_account.id, hashed_password) == True:
                 flash('Your account has been successfully updated!', 'success')
             else:
-                flash('Sorry, we were unable to update your account', 'danger')
+                flash('Sorry, we were unable to update your account!', 'danger')
             return redirect(url_for('admin_control'))
 
         #Update email
@@ -637,7 +763,7 @@ def admin_control():
             if User.update_email(admin_account.id, emailform.email.data) == True:
                 flash('Your account has been successfully updated!', 'success')
             else:
-                flash('Sorry, we were unable to update your account', 'danger')
+                flash('Sorry, we were unable to update your account!', 'danger')
             return redirect(url_for('admin_control'))
             
         #Remove old accounts
@@ -646,7 +772,7 @@ def admin_control():
             if results:
                 flash('Successfully removed ' + str(results) + ' account(s)!', 'success')
             else:
-                flash('No accounts were deleted', 'success')
+                flash('No accounts were deleted!', 'success')
             return redirect(url_for('admin_control'))
             
         #Change reset date    
@@ -654,39 +780,63 @@ def admin_control():
             if Reset_Date.change_date(resetdateform.reset_date.data):
                 flash('Successfully changed the reset date to ' +  str(resetdateform.reset_date.data)[5:] + '!', 'success')
             else:
-                flash('Sorry, we were not able to change the date', 'danger')
+                flash('Sorry, we were not able to change the date!', 'danger')
             return redirect(url_for('admin_control'))
             
 
         #Load page
         resetdateform.reset_date.data = Reset_Date.get_reset_date().reset_date
         emailform.email.data = current_user.email
-          
-        return render_template('admin_control.html', form_email=emailform, form_password=passwordform, form_old_accounts=oldaccountsform, form_reset_date=resetdateform)    
-        
-    except:
 
+        # Call the google api and pull all upcoming events
+        events = get_event_list()
+        
+        # Parse the events into incoming and special groups
+        mesa_days = searchEvents(events, ['Mesa','Day'])
+        demo_days = searchEvents(events, ['Demo','Day'])
+        future_events = [event for event in events if event['remain_days'] < 15]
+        upcoming_events = [event for event in events if event['remain_days'] < 8]
+        current_events = [event for event in events if event['remain_days'] < 3]
+        mesa_events = get_mesa_events(future_events)
+          
+        return render_template('admin_control.html', form_email=emailform, form_password=passwordform, form_old_accounts=oldaccountsform, form_reset_date=resetdateform,form_school_add=addschoolform,form_school_delete=deleteschoolform, events=events,
+                                    number_upcoming=len(upcoming_events),
+                                    upcoming_events=upcoming_events, 
+                                    number_current=len(current_events),
+                                    current_events=current_events,
+                                    mesa_days=mesa_days, 
+                                    demo_days=demo_days, 
+                                    mesa_events=mesa_events)
+
+    except:
         return redirect(url_for('error')) 
 
 @app.route("/admin_settings", methods=['GET', 'POST'])
 @login_required
 def admin_settings():
-  
+    '''
+    Route for the admin settings page
+    On this page, an admin can change required badge points, add stamps, remove stamps, change badge name, or change badge icon
+    '''
     try: 
         if not User.verify_role(current_user.id):     
             return redirect(url_for('dashboard'))
             
         badges = Badge.get_all_badges()
         badge_forms = {}
+        addstampform = AddStampForm()
+        deletestampform = DeleteStampForm()        
+        badgenameform = EditBadgeForm()
 
-
+        # Changing badge score 
         for badge in badges:
             form = BadgePointsForm(prefix=str(badge.badge_id)) 
             if form.submit.data and form.validate_on_submit():
-                if Badge.change_points(badge.badge_id, form.level1_points.data, form.level2_points.data, form.level3_points.data, form.level4_points.data, form.level5_points.data, form.level6_points.data, form.level7_points.data, form.level8_points.data, form.level9_points.data, form.level10_points.data):
-                    flash('Successfully changed badge points', 'success')
+                if Badge.change_points(badge.badge_id, form.level1_points.data, form.level2_points.data, form.level3_points.data, form.level4_points.data, \
+                        form.level5_points.data, form.level6_points.data, form.level7_points.data, form.level8_points.data, form.level9_points.data, form.level10_points.data):
+                    flash('Successfully changed badge points!', 'success')
                 else:
-                    flash('Sorry, we were not able to change the badge points', 'danger')
+                    flash('Sorry, we were not able to change the badge points!', 'danger')
                 return redirect(url_for('admin_settings'))        
             form.level1_points.data = badge.level1_points    
             form.level2_points.data = badge.level2_points            
@@ -700,15 +850,85 @@ def admin_settings():
             form.level10_points.data = badge.level10_points                    
             badge_forms[badge.badge_id] = form 
 
-        return render_template('admin_settings.html', badge_forms=badge_forms, badges=badges)
-    except:
+        # Adding New Stamp
+        if addstampform.badge.data and addstampform.validate_on_submit():
+            newStamp=Stamp(addstampform.stamp_name.data,addstampform.badge.data,addstampform.points.data,None)
+            Stamp.add_stamp(newStamp)
+            flash('New stamp has been created!', 'success')
+            return redirect(url_for('admin_settings'))
 
-        return redirect(url_for('error')) 
+
+        # Deleting a Stamp
+        if deletestampform.submitdelete.data and deletestampform.validate_on_submit():  
+            stampName=Stamp.get_stamp_by_stamp_id(deletestampform.stampdelete.data)
+            Stamp.delete_stamp_by_id(deletestampform.stampdelete.data)
+            flash('Stamp deleted successfully!', 'success')
+            return redirect(url_for('admin_settings'))
+
+        # Updating a Badge Name
+        if badgenameform.badgeName.data and badgenameform.validate_on_submit():
+            badgeId=badgenameform.badge.data
+            badgeName= badgenameform.badgeName.data
+            Badge.update_badge_name(badgeId,badgeName)
+            flash('Badge name has been successfully updated!', 'success')
+            return redirect(url_for('admin_settings'))
+
+
+        #Update Icon
+        if request.method=='POST':
+            iconSelect = request.form.get('iconSelect')
+            if iconSelect:
+                badgeSelect = request.form.get('iconBadgeSelect')
+
+                if Badge.update_icon(badgeSelect, iconSelect) == True:
+                    flash('Badge icon has been successfully updated!', 'success')
+                else:
+                    flash('Sorry, we were unable to update the badge icon!', 'danger')
+                return redirect(url_for('admin_settings'))
+
+        deletestampform.stampdelete.choices = Stamp.get_stamps_of_badge(1)
+
+        # Call the google api and pull all upcoming events
+        events = get_event_list()
         
- 
+        # Parse the events into incoming and special groups
+        mesa_days = searchEvents(events, ['Mesa','Day'])
+        demo_days = searchEvents(events, ['Demo','Day'])
+        future_events = [event for event in events if event['remain_days'] < 15]
+        upcoming_events = [event for event in events if event['remain_days'] < 8]
+        current_events = [event for event in events if event['remain_days'] < 3]
+        mesa_events = get_mesa_events(future_events)
+
+        return render_template('admin_settings.html', badge_forms=badge_forms, form_add_stamp=addstampform, form_delete_stamp=deletestampform, \
+                form_badge_name=badgenameform, badges=badges, icon_files=Icon.get_all_icons(), events=events,
+                                number_upcoming=len(upcoming_events),
+                                upcoming_events=upcoming_events, 
+                                number_current=len(current_events),
+                                current_events=current_events,
+                                mesa_days=mesa_days, 
+                                demo_days=demo_days, 
+                                mesa_events=mesa_events)
+    except:
+        return redirect(url_for('error')) 
+
+@app.route('/stamp/<badgeid>')
+def stamp(badgeid):
+    '''
+        This route dynamically returns all the stamps for a badge as a json
+        Used by the admin settings
+    '''
+    stamps = Stamp.get_stamps_of_badge(badgeid)
+    stampArray = []
+    for stamp in stamps:
+        stampObj = {}
+        stampObj['id'] = stamp.stamp_id
+        stampObj['name'] = stamp.stamp_name
+        stampArray.append(stampObj)
+
+    return jsonify({'stamps' : stampArray})
 
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-                        Routes Functions
+                        Route Functions
        Supporting functions used throughout the various routes
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
  
@@ -856,3 +1076,5 @@ username has been generated and it is '''+username+'''
 please keep this email handy as you will need that username every time you
 login to the app. '''
     mail.send(msg)
+
+

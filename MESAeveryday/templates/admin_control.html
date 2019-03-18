@@ -1,152 +1,246 @@
-{% extends "layout.html" %}
-{% block content %}
-
+{% extends "admin_layout.html" %}
+{% block main %}
+<style>
+    .mdb-color.lighten-3 {
+        background-color: #716558 !important;
+    }
+</style>
 <!-- Admin Control Placeholder -->
+<!-- First row -->
+<div class="row">
+    <!-- First column -->
+    <div class="col-lg-3 mb-4">
 
-<!--Navbar-->
-<ul class="nav navbar-nav nav-flex-icons ml-auto">
-    <li class = "nav-item">
-        <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
-    </li>
-</ul>
+        <!--Card-->
+        <div class="card card-cascade narrower">
 
-<div class="container-fluid"> 
-    You are now in the admin control page
-    <li><a href="{{ url_for('admin') }}">Dashboard</a></li>
-    <li><a href="{{ url_for('admin_settings') }}">Settings</a></li>
-</div>
-
-<div class="content-section">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-    
-    <!-- Update Email -->
-    <form name ="form_email" method="POST" action="" enctype="multipart/form-data">
-        {{ form_email.hidden_tag() }}
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4">Account Info</legend>
-            <div class="form-group">
-                {{ form_email.email.label(class="form-control-label") }}
-                {% if form_email.email.errors %}
-                    {{ form_email.email(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form_email.email.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form_email.email(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>          
-        </fieldset>
-        <div class="form-group">
-            {{ form_email.submit(class="btn btn-outline-info") }}
-        </div>
-    </form>
-    
-    <!-- Update Password -->
-    <form name="form_password" method="POST" action="{{ url_for('admin_control') }}" enctype="multipart/form-data">
-        {{ form_password.hidden_tag() }}
-        <fieldset class="form-group">
-            <p class="h4 mb-4">Update Password</p>
-            <div class="form-group">
-                {% if form_password.old_password.errors %}
-                    {{ form_password.old_password(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form_password.old_password.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form_password.old_password(class="form-control", placeholder="Old Password") }}
-                {% endif %}
+            <!--Card image-->
+            <div class="view gradient-card-header mdb-color lighten-3">
+                <h5 class="mb-0 font-weight-bold">{{ current_user.username }}</h5>
             </div>
-            <div class="form-group">
-                {% if form_password.password.errors %}
-                    {{ form_password.password(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form_password.password.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form_password.password(class="form-control", placeholder="New Password") }}
-                {% endif %}
+            <!--/Card image-->
+
+            <!-- Card content -->
+            <div class="card-body text-center">
+                <img class="rounded-circle account-img" src="static/avatar/{{ current_user.avatar.file_name }}"width="75" height="75">
+
+                <p class="text-muted"><medium>{{ current_user.email }}</medium></p>
             </div>
-            <div class="form-group">
-                {% if form_password.confirm_password.errors %}
-                    {{ form_password.confirm_password(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form_password.confirm_password.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form_password.confirm_password(class="form-control", placeholder="Confirm New Password") }}
-                {% endif %}
-            </div>        
-        </fieldset>                       
-        <div class="form-group">
-            {{ form_password.submit(class="btn btn-outline-info") }}
-        </div>
-    </form>
-    
-    <!-- Removing Old Accounts -->
-    <form name ="form_old_accounts" method="POST" action="" enctype="multipart/form-data">
-        {{ form_old_accounts.hidden_tag() }}
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4">Remove Old Accounts.  </legend>
-            All accounts that have been inactive for longer than the year selected will be deleted. <br/>
-            WARNING: Once an account is deleted, there is no way to recover it! <br/><br/>
-            <div class="form-group">
-                {{ form_old_accounts.years.label(class="form-control-label") }}
-                {% if form_old_accounts.years.errors %}
-                    {{ form_old_accounts.years(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form_old_accounts.years.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form_old_accounts.years(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>          
-        </fieldset>
-        <div class="form-group">
-            {{ form_old_accounts.submit(class="btn btn-outline-info") }}
-        </div>
-    </form>
-    
-    <!-- Setting Reset Date -->
-    <form name ="form_reset_date" method="POST" action="" enctype="multipart/form-data">
-        {{ form_reset_date.hidden_tag() }}
-        <fieldset class="form-group">
-            <legend class="border-bottom mb-4">Set Reset Day  </legend>
-            This date determines what day of the year everyone's score will reset <br/><br/>
-            <div class="form-group">
-                <div class="col-lg-4 col-md-12">
-                    <div class="md-form">
-                        {{ form_reset_date.reset_date(class="date-custom", placeholder="Selected date") }}               
-                        <span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>
-                    </div>
-                </div> 
-            </div>          
-        </fieldset>
-        <div class="form-group">
-            {{ form_reset_date.submit(class="btn btn-outline-info") }}
-        </div>
-    </form>
+            <!-- /.Card content -->
 
+        </div>
+        <!--/.Card-->
+
+    </div>
+    <!-- /.First column -->
+    <!-- Second column -->
+    <div class="col-lg-9 mb-4">
+        <div class="classic-tabs">
+            <div class="tabs-wrapper">
+                <ul class="nav tabs" style="background-color: #716558" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link waves-light active waves-effect waves-light" data-toggle="tab" href="#panel36" role="tab">School</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link waves-light waves-effect waves-light" data-toggle="tab" href="#panel37" role="tab">Account</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link waves-light waves-effect waves-light" data-toggle="tab" href="#panel38" role="tab">Reset Day</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- Tab panels -->
+            <div class="tab-content card">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-{{ category }}">
+                        {{ message }}
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+                <!--Panel 1-->
+                <div class="tab-pane fade in show active" id="panel36" role="tabpanel">
+                    <!-- Add School -->
+                    <form name ="form_name" method="POST" action="" enctype="multipart/form-data">
+                        {{ form_school_add.hidden_tag() }}
+                        <fieldset class="form-group">
+                            <div class="form-group">
+                        <legend class="border-bottom mb-4">School Name  </legend>
+                                {% if form_school_add.schoolName.errors %}
+                                    {{ form_school_add.schoolName(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form_school_add.schoolName.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form_school_add.schoolName(class="form-control", placeholder="School Name") }}
+                                {% endif %}
+                            </div>
+                        </fieldset>
+                        <div class="form-group">
+                            {{ form_school_add.submit(class="btn btn-outline-info") }}
+                        </div>
+                    </form>
+                    <!-- Delete School -->
+                    <form name="form_school" method="POST" action="" enctype="multipart/form-data">
+                        {{ form_school_delete.hidden_tag() }}
+                        <fieldset class="form-group">
+                             <div class="form-group">
+                        <legend class="border-bottom mb-4">Select School to Delete  </legend>
+                                {% if form_school_delete.school.errors %}
+                                    {{ form_school_delete.school(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form_school_delete.school.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form_school_delete.school(class="form-control", placeholder="School") }}
+                                {% endif %}
+                            </div>
+                        </fieldset>
+                        <div class="form-group">
+                            {{ form_school_delete.submit(class="btn btn-outline-info") }}
+                        </div>
+                    </form>
+                </div>
+                <!--/.Panel 1-->
+                <!--Panel 2-->
+                <div class="tab-pane fade" id="panel37" role="tabpanel">
+                    <br>
+                    <!-- Update Email -->
+                    <form name ="form_email" method="POST" action="" enctype="multipart/form-data">
+                        {{ form_email.hidden_tag() }}
+                        <fieldset class="form-group">
+                            <legend class="border-bottom mb-4">Account Info</legend>
+                            <div class="form-group">
+                                {{ form_email.email.label(class="form-control-label") }}
+                                {% if form_email.email.errors %}
+                                    {{ form_email.email(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form_email.email.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form_email.email(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>          
+                        </fieldset>
+                        <div class="form-group">
+                            {{ form_email.submit(class="btn btn-outline-info") }}
+                        </div>
+                    </form>
+                    
+                    <!-- Update Password -->
+                    <form name="form_password" method="POST" action="{{ url_for('admin_control') }}" enctype="multipart/form-data">
+                        {{ form_password.hidden_tag() }}
+                        <fieldset class="form-group">
+                            <legend class="border-bottom mb-4">Update Password</legend>
+                            <div class="form-group">
+                                {% if form_password.old_password.errors %}
+                                    {{ form_password.old_password(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form_password.old_password.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form_password.old_password(class="form-control", placeholder="Old Password") }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {% if form_password.password.errors %}
+                                    {{ form_password.password(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form_password.password.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form_password.password(class="form-control", placeholder="New Password") }}
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                {% if form_password.confirm_password.errors %}
+                                    {{ form_password.confirm_password(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form_password.confirm_password.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form_password.confirm_password(class="form-control", placeholder="Confirm New Password") }}
+                                {% endif %}
+                            </div>        
+                        </fieldset>                       
+                        <div class="form-group">
+                            {{ form_password.submit(class="btn btn-outline-info") }}
+                        </div>
+                    </form>
+                    
+                    <!-- Removing Old Accounts -->
+                    <form name ="form_old_accounts" method="POST" action="" enctype="multipart/form-data">
+                        {{ form_old_accounts.hidden_tag() }}
+                        <fieldset class="form-group">
+                            <legend class="border-bottom mb-4">Remove Old Accounts.  </legend>
+                            All accounts that have been inactive for longer than the year selected
+                            <br/> will be deleted. <br/>
+                            WARNING: Once an account is deleted, there is no way to recover it! <br/><br/>
+                            <div class="form-group">
+                                {{ form_old_accounts.years.label(class="form-control-label") }}
+                                {% if form_old_accounts.years.errors %}
+                                    {{ form_old_accounts.years(class="form-control form-control-lg is-invalid") }}
+                                    <div class="invalid-feedback">
+                                        {% for error in form_old_accounts.years.errors %}
+                                            <span>{{ error }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {{ form_old_accounts.years(class="form-control form-control-lg") }}
+                                {% endif %}
+                            </div>          
+                        </fieldset>
+                        <div class="form-group">
+                            {{ form_old_accounts.submit(class="btn btn-outline-info") }}
+                        </div>
+                    </form>
+                </div>
+                <!--/.Panel 2-->
+                <!--Panel 3-->
+                <div class="tab-pane fade" id="panel38" role="tabpanel">
+                    <!-- Setting Reset Date -->
+                    <form name ="form_reset_date" method="POST" action="" enctype="multipart/form-data">
+                        {{ form_reset_date.hidden_tag() }}
+                        <fieldset class="form-group">
+                            <legend class="border-bottom mb-4">Set Reset Day  </legend>
+                            This date determines what day of the year everyone's score will reset <br/><br/>
+                            <div class="form-group">
+                                <div class="col-lg-4 col-md-12">
+                                    <div class="md-form">
+                                        {{ form_reset_date.reset_date(class="date-custom", placeholder="Selected date") }}               
+                                        <span class="add-on"><i data-time-icon="icon-time" data-date-icon="icon-calendar"></i></span>
+                                    </div>
+                                </div> 
+                            </div>          
+                        </fieldset>
+                        <div class="form-group">
+                            {{ form_reset_date.submit(class="btn btn-outline-info") }}
+                        </div>
+                    </form>
+                </div>
+                <!--/.Panel 3-->
+            </div>
+        </div>
+    </div>
+    <!-- /.Second column -->
 </div>
+<!-- /.First row -->
 
-{% endblock content %}
+{% endblock main %}
 
 
 

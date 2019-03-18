@@ -44,12 +44,14 @@ body {
 		height: 100%;
 		border: 0;
 }
-
 select {
     display:block!important;
 }
 
 #avatarSelect {
+    display:none!important;
+}
+#iconSelect {
     display:none!important;
 }
 

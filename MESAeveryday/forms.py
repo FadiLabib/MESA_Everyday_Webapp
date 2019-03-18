@@ -2,7 +2,6 @@
 This file contains all the forms used throughout the application
 The application uses the flask_wtf library for creating forms
 Each class only needs to describe what fields are in the form and how the fields should be validated
-
 Modified from CoreyMSchafer's Flask Tutorial
 https://github.com/CoreyMSchafer/code_snippets/blob/master/Python/Flask_Blog/06-Login-Auth/flaskblog/routes.py
 """
@@ -18,22 +17,31 @@ def positive(form, field):
         if field.data != None and field.data < 1:
             raise ValidationError('Number must be positive.')
 
+class NonValidatingSelectField(SelectField):
+    """
+    Attempt to make an open ended select multiple field that can accept dynamic
+    choices added by the browser.
+    """
+    def pre_validate(self, form):
+        pass
+
 class RegistrationForm(FlaskForm):
+
     firstname = StringField('Firstname', validators=[DataRequired()])
     lastname = StringField('Lastname', validators=[DataRequired()])
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
     school = SelectField('School', coerce=int, choices=School.get_all_schools_names())
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=8, message="your password must be at least %(min)d characters")
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8, message="your password must be at least %(min)d characters long!")
                                  , Regexp("^(?=.*[0-9])(?=.*[!@#\$%\^&\*])",
-                                          message="The string must contain at least 1 numeric digit and 1 symbol")])
+                                          message="The string must contain at least one numeric digit and one symbol!")])
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
 
     def validate_email(self, email):
         if User.get_user_by_email(email.data):
-            raise ValidationError('That email is taken. Please choose a different one.')
+            raise ValidationError('That email is already taken. Please choose a different one.')
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
@@ -50,22 +58,22 @@ class RequestResetForm(FlaskForm):
     def validate_email(self, email):
         user = User.validate_email(email)
         if user == False:
-            raise ValidationError('There is no account with that email. You must regester first.')
+            raise ValidationError('There is no account with that email. You must register with it first.')
 
 class RequestResetUserForm(FlaskForm):
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
-    submit = SubmitField('Request User Reset')
+    submit = SubmitField('Request Username')
 
     def validate_email(self, email):
         user = User.validate_email(email)
         if user == False:
-            raise ValidationError('There is no account with that email. You must regester first.')
+            raise ValidationError('There is no account with that email. You must register with it first.')
 
 class ResetPasswordForm(FlaskForm):
-    password = PasswordField('Password',  validators=[DataRequired(), Length(min=8, message="your password must be at least %(min)d characters")
+    password = PasswordField('Password',  validators=[DataRequired(), Length(min=8, message="your password must be at least %(min)d characters long!")
                                  , Regexp("^(?=.*[0-9])(?=.*[!@#\$%\^&\*])",
-                                          message="The string must contain at least 1 numeric digit and 1 symbol")])
+                                          message="The string must contain at least one numeric digit and one symbol!")])
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Reset Password')
@@ -78,7 +86,7 @@ class UpdateEmailForm(FlaskForm):
     
     def validate_email(self, email):
         if User.get_user_by_email(email.data):
-            raise ValidationError('That email is taken. Please choose a different one.')
+            raise ValidationError('That email is already taken. Please choose a different one.')
 
 class UpdateNameForm(FlaskForm):
 
@@ -93,12 +101,32 @@ class UpdateSchoolForm(FlaskForm):
 
     submit = SubmitField('Update School')
 
+class AddSchoolForm(FlaskForm):
+
+    schoolName = StringField('SchoolName', validators=[DataRequired()])
+
+    submit = SubmitField('Add School')
+
+    def validate_schoolName(self, schoolName):
+        if School.get_school_by_name(schoolName.data):
+            raise ValidationError('That school already exists.')
+
+class DeleteSchoolForm(FlaskForm):
+
+    school = SelectField('School', coerce=int, choices=School.get_all_schools_names())
+
+    submit = SubmitField('Delete School')
+    def validate_school(self, school):
+        schoolName = School.get_school_by_id(school.data)
+        if schoolName.school_name == 'Other':
+            raise ValidationError('You cannot delete \'Other\'')
+
 class UpdatePasswordForm(FlaskForm):
     old_password = PasswordField('Password')
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8,
-                                                                            message="your password must be at least %(min)d characters")
+                                                                            message="your password must be at least %(min)d characters long!")
         , Regexp("^(?=.*[0-9])(?=.*[!@#\$%\^&\*])",
-                 message="The string must contain at least 1 numeric digit and 1 symbol")])
+                 message="The string must contain at least one numeric digit and one symbol!")])
     confirm_password = PasswordField('Confirm Password',
                                      validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Update Password')
@@ -116,15 +144,45 @@ class EarnStampsForm(FlaskForm):
         super(EarnStampsForm, self).__init__(*args, **kwargs)
         self.badge_name = badge_name
 
+
+class AddStampForm(FlaskForm):
+
+    badge = SelectField('Badge', coerce=int, choices=Badge.get_all_badges_id_with_names())
+    stamp_name = StringField('Stamp Name', validators=[DataRequired()])
+    points = IntegerField('Points', validators=[DataRequired(), positive])
+    submit = SubmitField('Add Stamp')
+
+    def validate_stamp_name(self, stamp_name):
+        if Stamp.get_stamp_by_name(stamp_name.data):
+            raise ValidationError('A stamp already exists with that name!')
+
+class DeleteStampForm(FlaskForm):
+
+    badgedelete = SelectField('Badge', coerce=int, choices=Badge.get_all_badges_id_with_names())
+    stampdelete = NonValidatingSelectField('Stamp', choices={})
+    submitdelete = SubmitField('Delete Stamp')
+
+
 class RemoveOldAccountsForm(FlaskForm):
-    years = SelectField('Years Inactive:', choices=[(1,'1'),(2,'2'),(3,'3'),(4,'4'),(5,'5'),(6,'6'),(7,'7'),(8,'8'),(9,'9'),(10,'10')], coerce=int)
+    years = SelectField('Years Inactive:', choices=[(10,'10'),(9,'9'),(8,'8'),(7,'7'),(6,'6'),(5,'5'),(4,'4'),(3,'3'),(2,'2'),(1,'1')], coerce=int)
     submit = SubmitField('Delete Old Accounts')
 
 class ResetDateForm(FlaskForm):
  
     reset_date = DateField('reset date', format='%m-%d', validators=[DataRequired()])
     submit = SubmitField('Change Reset Date')
-    
+class EditBadgeForm(FlaskForm):
+
+    badge = SelectField('Badge', coerce=int, choices=Badge.get_all_badges_id_with_names())
+    badgeName = StringField('badgeName', validators=[DataRequired()])
+    submit = SubmitField('Update Badge')
+
+
+class BadgeForm(FlaskForm):
+
+    badge = SelectField('Badge', coerce=int, choices=Badge.get_all_badges_id_with_names())
+    submit = SubmitField('Update Badge')
+
 class BadgePointsForm(FlaskForm):
     level1_points = IntegerField('level 1 points', validators=[positive])
     level2_points = IntegerField('level 2 points', validators=[Optional(), positive])
@@ -157,3 +215,4 @@ class BadgePointsForm(FlaskForm):
                                
             previous_points = field.data
         return result
+

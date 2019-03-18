@@ -31,6 +31,7 @@
                         <div class="col-lg-4 col-md-12">
                             <div class="md-form">
                                 {{ f.stamps(class="form-control", placeholder="stamps") }}
+
                             </div>
                         </div>
                         <div class="col-lg-4 col-md-12">
@@ -65,6 +66,21 @@
             $('#{{ "date" + loop.index|string }}').datepicker({
 
             });
+            var option = document.createElement("option");
+            option.text = "Please Select an Option";
+            option.value = "";
+            option.selected = "selected"
+            option.disabled = "disabled"
+            var select = document.getElementById("{{ f.badge_name }}-stamps");
+            select.appendChild(option);
         </script>
     {% endfor %}
+    <!-- <script type="text/javascript">
+        var option = document.createElement("option");
+        option.text = "please select an option";
+        option.value = "";
+        option.selected = "selected"
+        var select = document.getElementById("College Knowledge-stamps");
+        select.appendChild(option);
+    </script> -->
 {% endblock scripts %}

@@ -46,7 +46,6 @@ font-weight:700}header.masthead{
                 {{ form.hidden_tag() }}
                 <fieldset class="form-group">
                     <div class="form-group">
-                        {{ form.email.label(class="form-control-label") }}
                         {% if form.email.errors %}
                             {{ form.email(class="form-control form-control-lg is-invalid") }}
                             <div class="invalid-feedback">
@@ -55,7 +54,7 @@ font-weight:700}header.masthead{
                                 {% endfor %}
                             </div>
                         {% else %}
-                            {{ form.email(class="form-control form-control-lg") }}
+                            {{ form.email(class="form-control form-control-lg", placeholder="reset password") }}
                         {% endif %}
                     </div>
                 </fieldset>

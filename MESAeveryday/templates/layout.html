@@ -9,6 +9,7 @@
     {% else %}
         <title>MESA Everyday</title>
     {% endif %}
+    <link rel="icon" href="../static/img/favicon.png">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <!-- Bootstrap core CSS -->
@@ -24,11 +25,15 @@
     <link href="../static/css/jquery-ui.min.css" rel="stylesheet" type="text/css" />
     <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css"> -->
     <link rel="stylesheet" type="text/css" href="../static/css/dataTables.bootstrap4.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../static/css/flipclock.css"/>
     <link type="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
     <link href="../static/css/css-circular-prog-bar.css" media="all" rel="stylesheet" type="text/css"/>
     <style>
+        h1, h2, h3, h4, h5, h6 {
+          font-family: Merriweather;
+        }
         body {
-            font-family: Merriweather;
+            font-family: Merriweather!important;
         }
         .min-chart .percent:after {
             display: none;
@@ -42,7 +47,7 @@
           font-size: 18px;
           border: none;
           outline: none;
-          background-color: red;
+          background-color: #716558;
           color: white;
           cursor: pointer;
           padding: 15px;
@@ -64,33 +69,33 @@
         <div class="col-lg-6 h-100 text-center text-lg-left my-auto">
           <ul class="list-inline mb-2">
             <li class="list-inline-item">
-              <a href="#">Phone Number</a>
+              <a href="#">503 725 4665</a>
             </li>
             <li class="list-inline-item">&sdot;</li>
             <li class="list-inline-item">
-              <a href="#">Email</a>
+              <a href="#">ormesa@gmail.com</a>
             </li>
             <li class="list-inline-item">&sdot;</li>
             <li class="list-inline-item">
-              <a href="#">Location</a>
+              <a href="#">1930 SW 4th Ave, Portland, OR 97201</a>
             </li>
           </ul>
-          <p class="text-muted small mb-4 mb-lg-0">&copy; MESA Website 2018. All Rights Reserved.</p>
+          <p class="text-muted small mb-4 mb-lg-0"> Oregon MESA &copy; 2019. All Rights Reserved.</p>
         </div>
         <div class="col-lg-6 h-100 text-center text-lg-right my-auto">
           <ul class="list-inline mb-0">
             <li class="list-inline-item mr-3">
-              <a href="#">
+              <a href="https://www.facebook.com/oregonmesa" target="_blank">
                 <i class="fa fa-facebook fa-2x fa-fw"></i>
               </a>
             </li>
             <li class="list-inline-item mr-3">
-              <a href="#">
+              <a href="https://twitter.com/oregonmesa/" target="_blank">
                 <i class="fa fa-twitter-square fa-2x fa-fw"></i>
               </a>
             </li>
             <li class="list-inline-item">
-              <a href="#">
+              <a href="https://www.instagram.com/oregonmesa/" target="_blank">
                 <i class="fa fa-instagram fa-2x fa-fw"></i>
               </a>
             </li>
@@ -125,14 +130,14 @@
     <script type="text/javascript" src="../static/js/calendar.resize.js"></script>
     <script type="text/javascript" src="../static/js/sideNavInit.js"></script>
     <script type="text/javascript" src="../static/js/jquery-ui.min.js"></script>
-
+    <script type="text/javascript" src="../static/js/flipclock.min.js"></script>
 
     <script type="text/javascript">
         
         $(".date-custom").attr("autocomplete", "off");
         
         $('#upEvent').DataTable({
-           "dom": 'f<"top"i>rt<"bottom"lp><"clear">'
+           "dom": '<"top">rt<"bottom"ilp><"clear">'
         });
         $(function () {
             $('.min-chart#chart-sales').easyPieChart({
@@ -155,6 +160,10 @@
           document.body.scrollTop = 0;
           document.documentElement.scrollTop = 0;
         }
+        $('#1').DataTable({"dom": '<"top">rt<"bottom"ip><"clear">'});
+        $('#2').DataTable({"dom": '<"top">rt<"bottom"ip><"clear">'});
+        $('#3').DataTable({"dom": '<"top">rt<"bottom"ip><"clear">'});
+        $('#4').DataTable({"dom": '<"top">rt<"bottom"ip><"clear">'});
     </script>
     {% block scripts %}{% endblock scripts %}
     <!--Custom scripts-->

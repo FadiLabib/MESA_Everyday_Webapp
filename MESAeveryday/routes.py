@@ -10,7 +10,7 @@ from flask import render_template, url_for, flash, redirect, request,jsonify
 from MESAeveryday.forms import RegistrationForm, LoginForm, RequestResetForm, RequestResetUserForm, ResetPasswordForm, EarnStampsForm, UpdateEmailForm, UpdateNameForm, UpdateSchoolForm, \
     UpdatePasswordForm,AddSchoolForm,DeleteSchoolForm,AddStampForm,DeleteStampForm,UpdatePasswordForm, RemoveOldAccountsForm, ResetDateForm,EditBadgeForm,BadgePointsForm
 
-from MESAeveryday.models import User, School, Badge, Stamp, UserStamp, Avatar, Reset_Date, Icon
+from MESAeveryday.models import User, School, Badge, Stamp, UserStamp, Avatar, Reset_Date, Icon, close_session
 
 from MESAeveryday.calendar_events import get_event_list, searchEvents, get_mesa_events
 
@@ -45,11 +45,13 @@ def landpage():
         
         form_register = RegistrationForm()
         form_login = LoginForm()
+        close_session()
         return render_template('landpage.html', 
                                title='Landing', 
                                form_l=form_login, 
                                form_r=form_register)
     except:
+
         return redirect(url_for('error'))
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -86,7 +88,7 @@ def register():
                 # Tell the user their new username and send them an email with the username
                 flash('Your account has been created! You are now able to log in with the username: ' + new_username + '!', 'success')
                 send_generate_username(form_register.email.data, new_username)
-
+        close_session()
         return render_template('landpage.html', 
                                title='Landing', 
                                form_l=form_login, 
@@ -125,7 +127,7 @@ def login():
             # User did not enter the correct credentials
             else:
                 flash('Login unsuccessful. Please check your username and password!', 'danger')
-                
+        close_session()
         return render_template('landpage.html', 
                                title='Landing', 
                                form_l=form_login, 
@@ -165,7 +167,7 @@ def reset_request():
             send_reset_email(user)
             flash('An email has been sent with instructions for resetting your password!', 'info')
             return redirect(url_for('landpage'))
-
+        close_session()
         return render_template('reset_request.html', 
                                title='Rest Password', 
                                form=form)
@@ -206,6 +208,7 @@ def reset_token(token):
             else:
                 flash('Sorry, we were unable to update your password!', 'danger')
                 return redirect(url_for('landpage'))
+        close_session()
         return render_template('reset_token.html', 
                                title='Rest Password', 
                                form=form)
@@ -232,6 +235,7 @@ def forgot_username():
             send_forgot_username(user)
             flash('An email has been sent with your username attached!', 'info')
             return redirect(url_for('landpage'))
+        close_session()
         return render_template('forgot_username.html', 
                                title='Rest User', 
                                form=form)
@@ -240,14 +244,17 @@ def forgot_username():
 
 @app.errorhandler(429)
 def too_many_request(e):
+    close_session()
     return render_template('login_limit.html')
 
 @app.route("/term_of_service", methods=['GET'])
 def term_of_service():
+    close_session()
     return render_template('term_of_service.html')
 
 @app.route("/error", methods=['GET'])
 def error():
+    close_session()
     return render_template('error.html')        
       
         
@@ -268,10 +275,14 @@ def dashboard():
         # Send admins to the admin page
         if (User.verify_role(current_user.id)):
             return redirect(url_for('admin'))
-
+    
+        # Using bcrypt to check the users role for some reason changes the SQLalchemy relationship loading to "lazy" instead of "subquery"
+        # Reloading the user fixes this
+        login_manager.current_user = User.get_user_by_username(current_user.username)
+        
         # Get all the badges
         badges = Badge.get_all_badges()
-        
+       
         # Get Badge Progress and max points
         all_progress = {}  
         all_max_points = {}       
@@ -292,6 +303,7 @@ def dashboard():
         current_events = [event for event in events if event['remain_days'] < 3]
         mesa_events = get_mesa_events(future_events)
 
+        close_session()
         return render_template('dashboard.html',
                                badges=badges,
                                progress=all_progress,
@@ -317,7 +329,11 @@ def events():
         # Send admins to the admin page
         if (User.verify_role(current_user.id)):
             return redirect(url_for('admin'))
-            
+
+        # Using bcrypt to check the users role for some reason changes the SQLalchemy relationship loading to "lazy" instead of "subquery"
+        # Reloading the user fixes this
+        login_manager.current_user = User.get_user_by_username(current_user.username)
+
         # Get all the badges
         badges = Badge.get_all_badges()
         #badge_names, badge_ids = [row.badge_name for row in badges], [row.badge_id for row in badges]
@@ -338,7 +354,7 @@ def events():
         upcoming_events = [event for event in events if event['remain_days'] < 8]
         current_events = [event for event in events if event['remain_days'] < 3]
         mesa_events = get_mesa_events(future_events)
-
+        close_session()
         return render_template('events.html',
                                badges=badges,
                                progress=all_progress,
@@ -363,6 +379,10 @@ def account():
         # Send admins to the admin page
         if (User.verify_role(current_user.id)):
             return redirect(url_for('admin'))
+
+        # Using bcrypt to check the users role for some reason changes the SQLalchemy relationship loading to "lazy" instead of "subquery"
+        # Reloading the user fixes this
+        login_manager.current_user = User.get_user_by_username(current_user.username)
 
         emailform = UpdateEmailForm()
         nameform = UpdateNameForm()
@@ -441,7 +461,7 @@ def account():
         upcoming_events = [event for event in events if event['remain_days'] < 8]
         current_events = [event for event in events if event['remain_days'] < 3]
         mesa_events = get_mesa_events(future_events)
-        
+        close_session()
         return render_template('account.html', 
                                 title='Account', 
                                 badges=badges,
@@ -469,6 +489,10 @@ def account_deactivate():
         # Send admins to the admin page
         if (User.verify_role(current_user.id)):
             return redirect(url_for('admin'))
+
+        # Using bcrypt to check the users role for some reason changes the SQLalchemy relationship loading to "lazy" instead of "subquery"
+        # Reloading the user fixes this
+        login_manager.current_user = User.get_user_by_username(current_user.username)
 
         myaccount = User.get_user_by_username(current_user.username)
         print(myaccount.id)
@@ -503,6 +527,10 @@ def earn_stamps():
         # Send admins to the admin page
         if (User.verify_role(current_user.id)):
             return redirect(url_for('admin'))
+
+        # Using bcrypt to check the users role for some reason changes the SQLalchemy relationship loading to "lazy" instead of "subquery"
+        # Reloading the user fixes this
+        login_manager.current_user = User.get_user_by_username(current_user.username)
 
         # Get all badge names
         badge_names = [row.badge_name for row in Badge.get_all_badges_names()]   
@@ -549,7 +577,7 @@ def earn_stamps():
         upcoming_events = [event for event in events if event['remain_days'] < 8]
         current_events = [event for event in events if event['remain_days'] < 3]
         mesa_events = get_mesa_events(future_events)
-
+        close_session()
         return render_template('earnstamps.html', 
                                 title='Earn Stamps', 
                                 forms=forms, 
@@ -575,6 +603,10 @@ def check_badge(badge_id):
         # Send admins to the admin page
         if (User.verify_role(current_user.id)):
             return redirect(url_for('admin'))
+
+        # Using bcrypt to check the users role for some reason changes the SQLalchemy relationship loading to "lazy" instead of "subquery"
+        # Reloading the user fixes this
+        login_manager.current_user = User.get_user_by_username(current_user.username)
 
         # Get all the badges
         badges = Badge.get_all_badges()
@@ -624,7 +656,7 @@ def check_badge(badge_id):
         upcoming_events = [event for event in events if event['remain_days'] < 8]
         current_events = [event for event in events if event['remain_days'] < 3]
         mesa_events = get_mesa_events(future_events)
-
+        close_session()
         return render_template('badges.html', 
                                 badges=badges,
                                 badge=badge, 
@@ -664,7 +696,11 @@ def admin():
         # https://stackoverflow.com/questions/21895839/restricting-access-to-certain-areas-of-a-flask-view-function-by-role
         if not User.verify_role(current_user.id):
             return redirect(url_for('dashboard'))
-            
+
+        # Using bcrypt to check the users role for some reason changes the SQLalchemy relationship loading to "lazy" instead of "subquery"
+        # Reloading the user fixes this
+        login_manager.current_user = User.get_user_by_username(current_user.username)
+
         # Top scores will be a dictionary of arrays. 
         # Each array holds all the users and top scores for a specific badge
         # The dictionary will be for each badge and is indexed based on the badge id
@@ -699,7 +735,7 @@ def admin():
         upcoming_events = [event for event in events if event['remain_days'] < 8]
         current_events = [event for event in events if event['remain_days'] < 3]
         mesa_events = get_mesa_events(future_events)
-
+        close_session()
         return render_template('admin.html', badges=badges, top_scores=top_scores, events=events,
                                     number_upcoming=len(upcoming_events),
                                     upcoming_events=upcoming_events, 
@@ -722,7 +758,11 @@ def admin_control():
     try:    
         if not User.verify_role(current_user.id):
             return redirect(url_for('dashboard'))
-    
+
+        # Using bcrypt to check the users role for some reason changes the SQLalchemy relationship loading to "lazy" instead of "subquery"
+        # Reloading the user fixes this
+        login_manager.current_user = User.get_user_by_username(current_user.username)
+
         emailform = UpdateEmailForm()
         passwordform = UpdatePasswordForm()
         oldaccountsform = RemoveOldAccountsForm()
@@ -798,7 +838,7 @@ def admin_control():
         upcoming_events = [event for event in events if event['remain_days'] < 8]
         current_events = [event for event in events if event['remain_days'] < 3]
         mesa_events = get_mesa_events(future_events)
-          
+        close_session()
         return render_template('admin_control.html', form_email=emailform, form_password=passwordform, form_old_accounts=oldaccountsform, form_reset_date=resetdateform,form_school_add=addschoolform,form_school_delete=deleteschoolform, events=events,
                                     number_upcoming=len(upcoming_events),
                                     upcoming_events=upcoming_events, 
@@ -821,7 +861,11 @@ def admin_settings():
     try: 
         if not User.verify_role(current_user.id):     
             return redirect(url_for('dashboard'))
-            
+
+        # Using bcrypt to check the users role for some reason changes the SQLalchemy relationship loading to "lazy" instead of "subquery"
+        # Reloading the user fixes this
+        login_manager.current_user = User.get_user_by_username(current_user.username)
+
         badges = Badge.get_all_badges()
         badge_forms = {}
         addstampform = AddStampForm()
@@ -898,7 +942,7 @@ def admin_settings():
         upcoming_events = [event for event in events if event['remain_days'] < 8]
         current_events = [event for event in events if event['remain_days'] < 3]
         mesa_events = get_mesa_events(future_events)
-
+        close_session()
         return render_template('admin_settings.html', badge_forms=badge_forms, form_add_stamp=addstampform, form_delete_stamp=deletestampform, \
                 form_badge_name=badgenameform, badges=badges, icon_files=Icon.get_all_icons(), events=events,
                                 number_upcoming=len(upcoming_events),

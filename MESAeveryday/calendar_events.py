@@ -1,7 +1,9 @@
-# # modified from google dev
-# https://developers.google.com/calendar/quickstart/python 
+# MIT License
+# MESA © 2019
+# PSU Capstone 2018-2019
 
-# pylint: disable=E1101
+# modified from google dev
+# https://developers.google.com/calendar/quickstart/python 
 
 from __future__ import print_function
 from googleapiclient.discovery import build

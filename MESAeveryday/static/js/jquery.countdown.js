@@ -1,3 +1,9 @@
+/*
+MIT License
+MESA © 2019
+PSU Capstone 2018-2019
+*/
+
 /*!
  * The Final Countdown for jQuery v2.2.0 (http://hilios.github.io/jQuery.countdown/)
  * Copyright (c) 2016 Edson Hilios

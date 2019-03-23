@@ -1,3 +1,7 @@
+# MIT License
+# MESA © 2019
+# PSU Capstone 2018-2019
+
 """
 This file contains all the forms used throughout the application
 The application uses the flask_wtf library for creating forms

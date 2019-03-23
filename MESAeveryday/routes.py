@@ -1,3 +1,7 @@
+# MIT License
+# MESA © 2019
+# PSU Capstone 2018-2019
+
 """
 This file contains all the routes used by the MESA Everyday application.
 Each route selects the proper forms for each page, calculates the data to put in the page, and renders the html for that page

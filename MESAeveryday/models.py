@@ -1,3 +1,7 @@
+# MIT License
+# MESA © 2019
+# PSU Capstone 2018-2019
+
 """
 This file contains all tables in the database. It uses SQLAlchemy to map the tables to python objects
 All queries and session management is done in this file

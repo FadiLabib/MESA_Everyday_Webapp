@@ -1,3 +1,9 @@
+/*
+MIT License
+MESA © 2019
+PSU Capstone 2018-2019
+*/
+
 /*$('#clock1').countdown($('#clock1').attr('data-date-string'), function(event) {
     $(this).html(event.strftime('%D days %H hours:%M minutes:%S seconds'));
 });*/

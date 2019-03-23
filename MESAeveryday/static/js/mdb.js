@@ -1,3 +1,9 @@
+/*
+MIT License
+MESA © 2019
+PSU Capstone 2018-2019
+*/
+
 /*!
  * Material Design for Bootstrap 4
  * Version: MDB FREE: 4.5.9

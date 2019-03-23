@@ -1,3 +1,6 @@
+# MIT License
+# MESA © 2019
+# PSU Capstone 2018-2019
 from MESAeveryday import app
 import os
 

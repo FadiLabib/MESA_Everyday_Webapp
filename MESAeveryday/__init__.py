@@ -1,3 +1,7 @@
+# MIT License
+# MESA © 2019
+# PSU Capstone 2018-2019
+
 """
 This file initializes the application then imports all the routes from routes.py 
 
